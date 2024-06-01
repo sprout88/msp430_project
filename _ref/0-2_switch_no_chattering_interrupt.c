@@ -6,8 +6,7 @@ unsigned int is_right_switch = 0;
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
 
-    /* Left Switch */
-    // Left Switch 
+    /* Left Switch */ 
     P2OUT |= BIT1; // DIR
     P2REN |= BIT1; // pull up resister
 
@@ -17,8 +16,7 @@ void main(void) {
     P2IFG &= ~BIT1; // interrupt flag
     /* END Left Switch */
 
-    /* Left Switch */
-    // Right Switch
+    /* Right Switch */
     P1OUT |= BIT1; // DIR
     P1REN |= BIT1; // pull up resister
 
