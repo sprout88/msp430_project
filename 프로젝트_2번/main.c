@@ -1,11 +1,22 @@
 #include <msp430.h>
 
+unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
+unsigned int adc_data = 4143;
+unsigned int dynamic_segment_cnt = 0;
+
+void init_right_switch(void);
+void init_7_segment(void);
+void init_dynamic_timer(void);
+
+void show_screen(unsigned int);
 
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
 
-    init();
+    init_right_switch();
+    init_7_segment();
+    init_dynamic_timer();
 
     __bis_SR_register(GIE); // Interrupt enable
 
@@ -15,6 +26,65 @@ void main(void) {
     }
 }
 
-void init(void){
+void init_right_switch(void){
+    /* Right Switch */
+    P1OUT |= BIT1; // DIR
+    P1REN |= BIT1; // pull up resister
 
+    // Right Switch's Interrupt
+    P1IE |= BIT1; // Interrupt Enable
+    P1IES |= BIT1; // Interrupt edge select : Falling Edge
+    P1IFG &= ~BIT1; // interrupt flag
+    /* END Right Switch */
+}
+void init_7_segment(void){
+    /* 7 segment Digital Output */
+    P3DIR |= 0xffff;
+    P3OUT &= 0x0000;
+    P4DIR |= 0x000f;
+    P4OUT &= ~BIT0;
+    /* END 7 segment Digital Output */
+}
+void init_dynamic_timer(void){
+    /* Timer - Timer0 */
+    TA0CCTL0 = CCIE;
+    TA0CCR0 = 5000; //1000;
+    TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
+    /* END Timer - Timer0 */
+}
+
+void show_screen(unsigned int value){
+
+    if (dynamic_segment_cnt > 3)
+        dynamic_segment_cnt = 0; // count 순회
+
+    switch (dynamic_segment_cnt)
+    {
+    case 0:
+        P3OUT = digits[value%10];
+        P4OUT = ~BIT0;
+        break;
+    case 1:
+        P3OUT = digits[value/10%10];
+        P4OUT = ~BIT1;
+        break;
+    case 2:
+        P3OUT = digits[value/100%10];
+        P4OUT = ~BIT2;
+        break;
+    case 3:
+        P3OUT = digits[value/1000%10];
+        P4OUT = ~BIT3;
+        break;
+    }
+}
+
+
+// Timer interrupt service routine
+// 7 Segment Dinamic 구동 타이머
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void TIMER0_A0_ISR(void)
+{
+    dynamic_segment_cnt++;
+    show_screen(adc_data);
 }
