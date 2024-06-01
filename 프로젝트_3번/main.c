@@ -172,7 +172,10 @@ void keypad_controller(void){
     }
     else if (place == 4) // password 입력 완료
     {
-
+        if(data_value == password)
+        {
+            while(1){}
+        }
     }
     /* END Keypad Controller*/
 }
