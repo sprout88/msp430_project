@@ -7,7 +7,7 @@ unsigned int place = 0; // 4자리 segment 의 각 자리의 현재 선택을 �
 unsigned int data[4] = {0,}; // data: |0,0,0,0|, data[십진자릿수]
 //pwm_data = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
 unsigned int i = 0;
-unsigned int dynamic_segment_cnt = 0; 
+unsigned int dynamic_segment_cnt = 0;
 unsigned int data_value = 0; // data_value = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
@@ -27,7 +27,7 @@ void main(void) {
     {
         data_value = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
         keypad_controller();
-        show_screen(data_value);
+        //show_screen(data_value);
     }
 }
 
@@ -41,18 +41,18 @@ void init(void){
     P1IES |= BIT1; // Interrupt edge select : Falling Edge
     P1IFG &= ~BIT1; // interrupt flag
 
-    /* 7 segment Digital Output */ 
+    /* 7 segment Digital Output */
     P3DIR |= 0xffff;
     P3OUT &= 0x0000;
     P4DIR |= 0x000f;
     P4OUT &= ~BIT0;
     /* END 7 segment Digital Output */
 
-    /* Encoder */ 
+    /* Encoder */
 
     // EncoderA and EncoderB -> 위상 엇갈림
     // EncoderA : P1_2
-    // EncoderB : P1_3    
+    // EncoderB : P1_3
 
     P1IE |= BIT2; // Interrupt enabled
     P1IES |= BIT2; // Interrupt edge (Falling Edge)
@@ -61,9 +61,9 @@ void init(void){
     P1IE |= BIT3; // Interrupt enabled
     P1IES |= BIT3; // Interrupt edge (Falling Edge)
     P1IFG &= ~BIT3; // Interrupt flag
-    /* END Encoder */ 
+    /* END Encoder */
 
-    /* keypad */ 
+    /* keypad */
     // output
     P2DIR |= (BIT0 | BIT2 | BIT3);
     P2OUT |= (BIT0 | BIT2 | BIT3); // all high
@@ -172,13 +172,13 @@ void keypad_controller(void){
     }
     else if (place == 4) // password 입력 완료
     {
-        
+
     }
     /* END Keypad Controller*/
 }
 
-void show_screen(int value){
-    
+void show_screen(unsigned int value){
+
     if (dynamic_segment_cnt > 3)
         dynamic_segment_cnt = 0; // count 순회
 
@@ -206,6 +206,7 @@ void show_screen(int value){
 #pragma vector=PORT1_VECTOR
 __interrupt void Port_1(void)
 {
+
     // 엔코더를 돌리면, encoder_cnt 값이 변화
     if (P1IFG & BIT3) { // encoder interrupt
         if ((P1IN & BIT2) != 0) {
@@ -236,6 +237,9 @@ __interrupt void Port_1(void)
         password = encoder_cnt;
     }
 
+//    // password 값을 스크린에 표시
+//    show_screen(encoder_cnt);
+
     P1IFG &= ~BIT3; // Encoder A(P1_3) IFG clear (Interrupt END)
     P1IFG &= ~BIT2; // Encoder B(P1_2) IFG clear (Interrupt END)
     P1IFG &= ~BIT1; // Right Switch(P1) IFG clear (Interrupt END)
@@ -247,5 +251,5 @@ __interrupt void Port_1(void)
 __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++;
-    show_screen(password);
+    show_screen(encoder_cnt);
 }
