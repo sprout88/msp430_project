@@ -51,6 +51,7 @@ __interrupt void Port_1(void)
         }
     }
 
+    // 엔코더 오버플로우 핸들링
     if (encoder_cnt > 9999) {
         encoder_cnt = 0;
     } else if (encoder_cnt < 0) {
