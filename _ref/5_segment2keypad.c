@@ -9,11 +9,12 @@ void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 
-    // Digital Output - 7 segment
+    /* 7 segment Digital Output */ 
     P3DIR |= 0xffff;
     P3OUT &= 0x0000;
     P4DIR |= 0x000f;
     P4OUT &= ~BIT0;
+    /* END 7 segment Digital Output */
 
     /* keypad */ 
 

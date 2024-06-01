@@ -34,6 +34,13 @@ void init(void){
     P1IES |= BIT1; // Interrupt edge select : Falling Edge
     P1IFG &= ~BIT1; // interrupt flag
 
+    /* 7 segment Digital Output */ 
+    P3DIR |= 0xffff;
+    P3OUT &= 0x0000;
+    P4DIR |= 0x000f;
+    P4OUT &= ~BIT0;
+    /* END 7 segment Digital Output */
+
     /* Encoder */ 
 
     // EncoderA and EncoderB -> 위상 엇갈림
