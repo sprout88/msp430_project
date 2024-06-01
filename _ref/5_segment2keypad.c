@@ -15,7 +15,8 @@ void main(void)
     P4DIR |= 0x000f;
     P4OUT &= ~BIT0;
 
-    //// keypad
+    /* keypad */ 
+
     // output
     P2DIR |= (BIT0 | BIT2 | BIT3);
     P2OUT |= (BIT0 | BIT2 | BIT3); // all high
@@ -23,6 +24,8 @@ void main(void)
     // input
     P6REN |= (BIT3 | BIT4 | BIT5 | BIT6);
     P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
+    
+    /* END keypad */
 
     // Timer - Timer0
     TA0CCTL0 = CCIE;
