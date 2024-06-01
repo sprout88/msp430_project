@@ -48,6 +48,18 @@ void init(void){
     P1IES |= BIT3; // Interrupt edge (Falling Edge)
     P1IFG &= ~BIT3; // Interrupt flag
     /* END Encoder */ 
+
+    /* keypad */ 
+
+    // output
+    P2DIR |= (BIT0 | BIT2 | BIT3);
+    P2OUT |= (BIT0 | BIT2 | BIT3); // all high
+
+    // input
+    P6REN |= (BIT3 | BIT4 | BIT5 | BIT6);
+    P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
+    
+    /* END keypad */
 }
 
 void keypad_controller(void){
