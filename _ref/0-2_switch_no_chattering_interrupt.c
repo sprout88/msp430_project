@@ -34,13 +34,20 @@ void main(void) {
 #pragma vector=PORT2_VECTOR
 __interrupt void Port_2(void)
 {
-    is_left_switch = 1;
-    P2IFG &= ~BIT1; // IFG clear (Interrupt END)
+    if((P2IN & BIT1) == 0)
+    {
+        is_left_switch = 1;
+        P2IFG &= ~BIT1; // IFG clear (Interrupt END)
+    }
 }
 
 #pragma vector=PORT1_VECTOR
 __interrupt void Port_1(void)
 {
-    is_right_switch = 1;
-    P1IFG &= ~BIT1; // IFG clear (Interrupt END)
+    if((P1IN & BIT1) == 0)
+    {
+        is_right_switch = 1;
+        P1IFG &= ~BIT1; // IFG clear (Interrupt END)
+    }
+    
 }
