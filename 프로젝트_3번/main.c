@@ -7,7 +7,8 @@ unsigned int place = 0; // 4자리 segment 의 각 자리의 현재 선택을 �
 unsigned int data[4] = {0,}; // data: |0,0,0,0|, data[십진자릿수]
 //pwm_data = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
 unsigned int i = 0;
-unsigned int dynamic_segment_cnt = 0;
+unsigned int dynamic_segment_cnt = 0; 
+unsigned int data_value = 0; // data_value = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 
@@ -24,7 +25,9 @@ void main(void) {
 
     while (1)
     {
+        data_value = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
         keypad_controller();
+        show_screen(data_value);
     }
 }
 
