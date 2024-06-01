@@ -6,33 +6,15 @@ int key = 0; // keypad 에서 입력한 값을 저장하는 임시변수.
 int segment_place = 0; // 4자리 segment 의 각 자리의 현재 선택을 의미, hardware: |0 1 2 3|
 int data[4] = {0,}; // data: |0,0,0,0|, data[십진자릿수]
 //pwm_data = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
-
 unsigned int i = 0;
+
+void init(void);
+
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
 
-    // Right Switch
-    P1OUT |= BIT1;
-    P1REN |= BIT1;
-
-    // Right Switch's Interrupt
-    P1IE |= BIT1; // Interrupt Enable
-    P1IES |= BIT1; // Interrupt edge select : Falling Edge
-    P1IFG &= ~BIT1; // interrupt flag
-
-    // Encoder
-    // EncoderA and EncoderB -> 위상 엇갈림
-    // EncoderA : P1_2
-    // EncoderB : P1_3    
-
-    P1IE |= BIT2; // Interrupt enabled
-    P1IES |= BIT2; // Interrupt edge (Falling Edge)
-    P1IFG &= ~BIT2; // Interrupt flag
-
-    P1IE |= BIT3; // Interrupt enabled
-    P1IES |= BIT3; // Interrupt edge (Falling Edge)
-    P1IFG &= ~BIT3; // Interrupt flag
+    init();
 
     __bis_SR_register(GIE); // Interrupt enable
 
@@ -137,6 +119,32 @@ void main(void) {
 
 }
 
+void init(void){
+    // Right Switch
+    P1OUT |= BIT1;
+    P1REN |= BIT1;
+
+    // Right Switch's Interrupt
+    P1IE |= BIT1; // Interrupt Enable
+    P1IES |= BIT1; // Interrupt edge select : Falling Edge
+    P1IFG &= ~BIT1; // interrupt flag
+
+    /* Encoder */ 
+
+    // EncoderA and EncoderB -> 위상 엇갈림
+    // EncoderA : P1_2
+    // EncoderB : P1_3    
+
+    P1IE |= BIT2; // Interrupt enabled
+    P1IES |= BIT2; // Interrupt edge (Falling Edge)
+    P1IFG &= ~BIT2; // Interrupt flag
+
+    P1IE |= BIT3; // Interrupt enabled
+    P1IES |= BIT3; // Interrupt edge (Falling Edge)
+    P1IFG &= ~BIT3; // Interrupt flag
+    /* END Encoder */ 
+}
+
 #pragma vector=PORT1_VECTOR
 __interrupt void Port_1(void)
 {
@@ -170,6 +178,7 @@ __interrupt void Port_1(void)
         password = encoder_cnt;
     }
 
-    P1IFG &= ~BIT3; // Encoder(P1) IFG clear (Interrupt END)
+    P1IFG &= ~BIT3; // Encoder A(P1_3) IFG clear (Interrupt END)
+    P1IFG &= ~BIT2; // Encoder B(P1_2) IFG clear (Interrupt END)
     P1IFG &= ~BIT1; // Right Switch(P1) IFG clear (Interrupt END)
 }
