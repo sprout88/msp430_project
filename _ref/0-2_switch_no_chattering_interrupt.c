@@ -7,9 +7,9 @@ void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
 
     /* Left Switch */
-    // Left Switch
-    P2OUT |= BIT1;
-    P2REN |= BIT1;
+    // Left Switch 
+    P2OUT |= BIT1; // DIR
+    P2REN |= BIT1; // pull up resister
 
     // Left Switch's Interrupt
     P2IE |= BIT1; // Interrupt Enable
@@ -19,8 +19,8 @@ void main(void) {
 
     /* Left Switch */
     // Right Switch
-    P1OUT |= BIT1;
-    P1REN |= BIT1;
+    P1OUT |= BIT1; // DIR
+    P1REN |= BIT1; // pull up resister
 
     // Right Switch's Interrupt
     P1IE |= BIT1; // Interrupt Enable
