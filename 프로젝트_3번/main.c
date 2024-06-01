@@ -9,7 +9,7 @@ int data[4] = {0,}; // data: |0,0,0,0|, data[십진자릿수]
 unsigned int i = 0;
 
 void init(void);
-
+void keypad_controller(void);
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
@@ -20,103 +20,8 @@ void main(void) {
 
     while (1)
     {
-
-        /*Keypad Controller*/
-
-        // columns 1
-        P2OUT &= ~BIT2;
-        P2OUT |= (BIT0 | BIT3);
-
-        if ((P6IN & BIT3) == 0) // Button 1
-        {
-            key = 1;
-        }
-        else if ((P6IN & BIT6) == 0) // Button 4
-        {
-            key = 4;
-        }
-        else if ((P6IN & BIT5) == 0) // Button 7
-        {
-            key = 7;
-        }
-        else if ((P6IN & BIT4) == 0) // Button *
-        {
-            while ((P6IN & BIT4) == 0) // * 을 누르면, 다음 segment_place 로 이동
-                key = 0; // segment_place 이동 전 key 초기화
-            segment_place++; // segment_place 이동
-        }
-
-        // columns 2
-        P2OUT &= ~BIT0;
-        P2OUT |= (BIT2 | BIT3);
-
-        if ((P6IN & BIT3) == 0) // Button 2
-        {
-            key = 2;
-        }
-        else if ((P6IN & BIT6) == 0) // Button 5
-        {
-            key = 5;
-        }
-        else if ((P6IN & BIT5) == 0) // Button 8
-        {
-            key = 8;
-        }
-        else if ((P6IN & BIT4) == 0) // Button 0
-        {
-            key = 0;
-        }
-
-        // columns 3
-        P2OUT &= ~BIT3;
-        P2OUT |= (BIT0 | BIT2);
-
-        if ((P6IN & BIT3) == 0) // Button 3
-        {
-            key = 3;
-        }
-        else if ((P6IN & BIT6) == 0) // Button 6
-        {
-            key = 6;
-        }
-        else if ((P6IN & BIT5) == 0) // Button 9
-        {
-            key = 9;
-        }
-        else if ((P6IN & BIT4) == 0) // Button # 을 누르면 전체 password data 초기화
-        {
-            segment_place = 0; // segment_place 초기화
-
-            for (i = 0; i < 4; i++) // data 초기화
-            {
-                data[i] = 0;
-            }
-        }
-
-        // data[segment_place] 에 key 를 저장.
-        if (segment_place == 0)
-        {
-            data[3] = key;
-        }
-        else if (segment_place == 1)
-        {
-            data[2] = key;
-        }
-        else if (segment_place == 2)
-        {
-            data[1] = key;
-        }
-        else if (segment_place == 3)
-        {
-            data[0] = key;
-        }
-        else if (segment_place == 4) // password 입력 완료
-        {
-            
-        }
+        keypad_controller();
     }
-    /* END Keypad Controller*/
-
 }
 
 void init(void){
@@ -143,6 +48,103 @@ void init(void){
     P1IES |= BIT3; // Interrupt edge (Falling Edge)
     P1IFG &= ~BIT3; // Interrupt flag
     /* END Encoder */ 
+}
+
+void keypad_controller(void){
+    /*Keypad Controller*/
+
+    // columns 1
+    P2OUT &= ~BIT2;
+    P2OUT |= (BIT0 | BIT3);
+
+    if ((P6IN & BIT3) == 0) // Button 1
+    {
+        key = 1;
+    }
+    else if ((P6IN & BIT6) == 0) // Button 4
+    {
+        key = 4;
+    }
+    else if ((P6IN & BIT5) == 0) // Button 7
+    {
+        key = 7;
+    }
+    else if ((P6IN & BIT4) == 0) // Button *
+    {
+        while ((P6IN & BIT4) == 0) // * 을 누르면, 다음 segment_place 로 이동
+            key = 0; // segment_place 이동 전 key 초기화
+        segment_place++; // segment_place 이동
+    }
+
+    // columns 2
+    P2OUT &= ~BIT0;
+    P2OUT |= (BIT2 | BIT3);
+
+    if ((P6IN & BIT3) == 0) // Button 2
+    {
+        key = 2;
+    }
+    else if ((P6IN & BIT6) == 0) // Button 5
+    {
+        key = 5;
+    }
+    else if ((P6IN & BIT5) == 0) // Button 8
+    {
+        key = 8;
+    }
+    else if ((P6IN & BIT4) == 0) // Button 0
+    {
+        key = 0;
+    }
+
+    // columns 3
+    P2OUT &= ~BIT3;
+    P2OUT |= (BIT0 | BIT2);
+
+    if ((P6IN & BIT3) == 0) // Button 3
+    {
+        key = 3;
+    }
+    else if ((P6IN & BIT6) == 0) // Button 6
+    {
+        key = 6;
+    }
+    else if ((P6IN & BIT5) == 0) // Button 9
+    {
+        key = 9;
+    }
+    else if ((P6IN & BIT4) == 0) // Button # 을 누르면 전체 password data 초기화
+    {
+        segment_place = 0; // segment_place 초기화
+
+        for (i = 0; i < 4; i++) // data 초기화
+        {
+            data[i] = 0;
+        }
+    }
+
+    // data[segment_place] 에 key 를 저장.
+    if (segment_place == 0)
+    {
+        data[3] = key;
+    }
+    else if (segment_place == 1)
+    {
+        data[2] = key;
+    }
+    else if (segment_place == 2)
+    {
+        data[1] = key;
+    }
+    else if (segment_place == 3)
+    {
+        data[0] = key;
+    }
+    else if (segment_place == 4) // password 입력 완료
+    {
+        
+    }
+    /* END Keypad Controller*/
 }
 
 #pragma vector=PORT1_VECTOR
