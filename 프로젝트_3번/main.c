@@ -43,7 +43,7 @@ void main(void) {
 
         // columns 1
         P2OUT &= ~BIT2;
-        P2OUT |= (BIT0 | BIT1 | BIT3);
+        P2OUT |= (BIT0 | BIT3);
 
         if ((P6IN & BIT3) == 0) // Button 1
         {
@@ -86,7 +86,7 @@ void main(void) {
         }
 
         // columns 3
-        P2OUT &= ~BIT1;
+        P2OUT &= ~BIT3;
         P2OUT |= (BIT0 | BIT2);
 
         if ((P6IN & BIT3) == 0) // Button 3
