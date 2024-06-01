@@ -6,6 +6,7 @@ unsigned int is_right_switch = 0;
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
 
+    /* Left Switch */
     // Left Switch
     P2OUT |= BIT1;
     P2REN |= BIT1;
@@ -14,7 +15,9 @@ void main(void) {
     P2IE |= BIT1; // Interrupt Enable
     P2IES |= BIT1; // Interrupt edge select : Falling Edge
     P2IFG &= ~BIT1; // interrupt flag
+    /* END Left Switch */
 
+    /* Left Switch */
     // Right Switch
     P1OUT |= BIT1;
     P1REN |= BIT1;
@@ -23,6 +26,7 @@ void main(void) {
     P1IE |= BIT1; // Interrupt Enable
     P1IES |= BIT1; // Interrupt edge select : Falling Edge
     P1IFG &= ~BIT1; // interrupt flag
+    /* END Right Switch */
 
     __bis_SR_register(GIE); // Interrupt enable
 
