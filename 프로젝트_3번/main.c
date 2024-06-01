@@ -1,16 +1,19 @@
 #include <msp430.h>
 
-int encoder_cnt = 0;
-int password = 0;
-int key = 0; // keypad 에서 입력한 값을 저장하는 임시변수.
-int place = 0; // 4자리 segment 의 각 자리의 현재 선택을 의미, hardware: |0 1 2 3|
-int data[4] = {0,}; // data: |0,0,0,0|, data[십진자릿수]
+unsigned int encoder_cnt = 0;
+unsigned int password = 0;
+unsigned int key = 0; // keypad 에서 입력한 값을 저장하는 임시변수.
+unsigned int place = 0; // 4자리 segment 의 각 자리의 현재 선택을 의미, hardware: |0 1 2 3|
+unsigned int data[4] = {0,}; // data: |0,0,0,0|, data[십진자릿수]
 //pwm_data = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
 unsigned int i = 0;
+unsigned int dynamic_segment_cnt = 0;
+
+unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 
 void init(void);
 void keypad_controller(void);
-void show_screen(void);
+void show_screen(unsigned int,unsigned int);
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
@@ -58,7 +61,6 @@ void init(void){
     /* END Encoder */ 
 
     /* keypad */ 
-
     // output
     P2DIR |= (BIT0 | BIT2 | BIT3);
     P2OUT |= (BIT0 | BIT2 | BIT3); // all high
@@ -66,7 +68,6 @@ void init(void){
     // input
     P6REN |= (BIT3 | BIT4 | BIT5 | BIT6);
     P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
-    
     /* END keypad */
 
     /* Timer - Timer0 */
@@ -173,27 +174,27 @@ void keypad_controller(void){
     /* END Keypad Controller*/
 }
 
-void show_screen(void){
-    cnt++;
-    if (cnt > 3)
-        cnt = 0;
+void show_screen(int value){
+    
+    if (dynamic_segment_cnt > 3)
+        dynamic_segment_cnt = 0; // count 순회
 
-    switch (cnt)
+    switch (dynamic_segment_cnt)
     {
     case 0:
-        P3OUT = digits[key%10];
+        P3OUT = digits[value%10];
         P4OUT = ~BIT0;
         break;
     case 1:
-        P3OUT = digits[key/10%10];
+        P3OUT = digits[value/10%10];
         P4OUT = ~BIT1;
         break;
     case 2:
-        P3OUT = digits[key/100%10];
+        P3OUT = digits[value/100%10];
         P4OUT = ~BIT2;
         break;
     case 3:
-        P3OUT = digits[key/1000%10];
+        P3OUT = digits[value/1000%10];
         P4OUT = ~BIT3;
         break;
     }
@@ -235,4 +236,13 @@ __interrupt void Port_1(void)
     P1IFG &= ~BIT3; // Encoder A(P1_3) IFG clear (Interrupt END)
     P1IFG &= ~BIT2; // Encoder B(P1_2) IFG clear (Interrupt END)
     P1IFG &= ~BIT1; // Right Switch(P1) IFG clear (Interrupt END)
+}
+
+// Timer interrupt service routine
+// 7 Segment Dinamic 구동 타이머
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void TIMER0_A0_ISR(void)
+{
+    dynamic_segment_cnt++;
+    show_screen(password);
 }

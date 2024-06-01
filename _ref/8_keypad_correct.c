@@ -3,7 +3,7 @@
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd };
 
 unsigned int i = 0;
-unsigned int cnt = 0;
+unsigned int dynamic_segment_cnt = 0;
 unsigned int key = 0;
 unsigned int data[4] = {0, };
 unsigned int menu = 0;
@@ -167,11 +167,11 @@ void main(void)
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
 {
-    cnt++;
-    if(cnt > 3)
-        cnt = 0;
+    dynamic_segment_cnt++;
+    if(dynamic_segment_cnt > 3)
+        dynamic_segment_cnt = 0;
 
-    switch (cnt)
+    switch (dynamic_segment_cnt)
     {
     case 0:
         P3OUT = digits[data[0]]; // 가장 낮은 자리의 데이터
