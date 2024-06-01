@@ -15,6 +15,8 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 void init(void);
 void keypad_controller(void);
 void show_screen(unsigned int);
+void reset_password_input(void);
+void stanby(void);
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
@@ -145,12 +147,7 @@ void keypad_controller(void){
     }
     else if ((P6IN & BIT4) == 0) // Button # 을 누르면 전체 password data 초기화
     {
-        place = 0; // place 초기화
-
-        for (i = 0; i < 4; i++) // data 초기화
-        {
-            data[i] = 0;
-        }
+        reset_password_input();
     }
 
     // data[place] 에 key 를 저장.
@@ -174,7 +171,9 @@ void keypad_controller(void){
     {
         if(data_value == password)
         {
-            while(1){}
+            stanby();
+        }else{
+            reset_password_input();
         }
     }
     /* END Keypad Controller*/
@@ -204,6 +203,19 @@ void show_screen(unsigned int value){
         P4OUT = ~BIT3;
         break;
     }
+}
+
+void reset_password_input(void){
+    place = 0; // place 초기화
+
+    for (i = 0; i < 4; i++) // data 초기화
+    {
+        data[i] = 0;
+    }
+}
+
+void stanby(void){
+    
 }
 
 #pragma vector=PORT1_VECTOR
