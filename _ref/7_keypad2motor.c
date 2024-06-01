@@ -34,14 +34,16 @@ void main(void)
     TA2CCR2 = 0; // PWM toggle/set
     TA2CTL = TASSEL_2 + MC_1; // SMCLK : 1Mhz / Up mode to CCR0
 
-    //// keypad
+    /* keypad */ 
+    
     // output
     P2DIR |= (BIT1 | BIT3);
     P2OUT |= (BIT1 | BIT3); // all high
-
     // input
     P6REN |= (BIT3 | BIT4 | BIT5 | BIT6);
     P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
+
+    /* END keypad */
 
     // Timer - Timer0
     TA0CCTL0 = CCIE;
