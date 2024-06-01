@@ -68,6 +68,12 @@ void init(void){
     P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
     
     /* END keypad */
+
+    /* Timer - Timer0 */
+    TA0CCTL0 = CCIE;
+    TA0CCR0 = 5000; //1000;
+    TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
+    /* END Timer - Timer0 */
 }
 
 void keypad_controller(void){
@@ -165,6 +171,32 @@ void keypad_controller(void){
         
     }
     /* END Keypad Controller*/
+}
+
+void show_screen(void){
+    cnt++;
+    if (cnt > 3)
+        cnt = 0;
+
+    switch (cnt)
+    {
+    case 0:
+        P3OUT = digits[key%10];
+        P4OUT = ~BIT0;
+        break;
+    case 1:
+        P3OUT = digits[key/10%10];
+        P4OUT = ~BIT1;
+        break;
+    case 2:
+        P3OUT = digits[key/100%10];
+        P4OUT = ~BIT2;
+        break;
+    case 3:
+        P3OUT = digits[key/1000%10];
+        P4OUT = ~BIT3;
+        break;
+    }
 }
 
 #pragma vector=PORT1_VECTOR
