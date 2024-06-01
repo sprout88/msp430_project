@@ -128,24 +128,9 @@ void main(void) {
         {
             data[0] = key;
         }
-        else if (segment_place == 4)
+        else if (segment_place == 4) // password 입력 완료
         {
-            pwm_data = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
-
-            if (pwm_data < 1000)
-            {
-                TA2CCR2 = pwm_data;
-                TA2CCR1 = 0;
-            }
-            else
-            {
-                TA2CCR2 = 0;
-                TA2CCR1 = 0;
-                for (i = 0; i < 4; i++)
-                {
-                    data[i] = 0;
-                }
-            }
+            
         }
     }
     /* END Keypad Controller*/
