@@ -13,7 +13,7 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 
 void init(void);
 void keypad_controller(void);
-void show_screen(unsigned int,unsigned int);
+void show_screen(unsigned int);
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
