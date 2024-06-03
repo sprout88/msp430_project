@@ -33,6 +33,10 @@ void main(void) {
 
 }
 
+void stop_watchdog_timer(void){
+    WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
+}
+
 void init_right_switch(void){
     P1OUT |= BIT1; // DIR
     P1REN |= BIT1; // pull up resister

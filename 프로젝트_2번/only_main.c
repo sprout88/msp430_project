@@ -11,3 +11,7 @@ void main(void) {
         show_screen(adc_data);
     }
 }
+
+void left_switch_interrupt_handler(void){
+    ADC_single_read(&adc_data);
+}
