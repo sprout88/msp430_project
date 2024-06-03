@@ -4,7 +4,7 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 unsigned int adc_data = 4143;
 unsigned int dynamic_segment_cnt = 0;
 
-unsigned int is left_switch = 0;
+unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
 
 /* watchdog timer functions */
