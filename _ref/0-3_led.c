@@ -6,7 +6,7 @@ void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;
 
-    /* LED1 : P1-0 */
+    /* LED1 : P1-1 */
     P1DIR |= BIT0;
     /* LED1 END */
 
