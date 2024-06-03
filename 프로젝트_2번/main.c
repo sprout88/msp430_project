@@ -226,14 +226,7 @@ void enable_interrupt_vector(void){
 __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++;
-    switch(screen_mode){
-        case 0:
-            show_screen_arr();
-            break;
-        case 1:
-            show_screen(adc_data);
-            break;
-    }
+    show_screen_arr();
 }
 
 // left switch interrupt
