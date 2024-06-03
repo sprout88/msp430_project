@@ -8,6 +8,6 @@ void main(void) {
     enable_interrupt_vector();
     while (1)
     {
-        
+        show_screen(adc_data);
     }
 }

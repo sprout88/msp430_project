@@ -100,11 +100,11 @@ void enable_interrupt_vector(void){
 }
 
 void left_switch_interrupt_handler(void){
-
+    // write your code here
 }
 
 void right_switch_interrupt_handler(void){
-    
+    // write your code here
 }
 
 // Timer interrupt service routine
