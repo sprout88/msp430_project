@@ -4,6 +4,9 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 unsigned int adc_data = 4143;
 unsigned int dynamic_segment_cnt = 0;
 
+unsigned int is left_switch = 0;
+unsigned int is_right_switch = 0;
+
 /* watchdog timer functions */
 void stop_watchdog_timer(void);
 
@@ -23,14 +26,14 @@ void ADC_single_read(unsigned int* p_data);
 /* interrupt functions */
 void enable_interrupt_vector(void);
 
+// ### Main ###
 void main(void) {
     stop_watchdog_timer();
 
     init_left_switch();
     init_7_segment();
 
-    __bis_SR_register(GIE); // Interrupt enable
-
+    enable_interrupt_vector();
     while (1)
     {
 
@@ -110,4 +113,26 @@ __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++;
     show_screen(adc_data);
+}
+
+// left switch interrupt
+#pragma vector=PORT2_VECTOR
+__interrupt void Port_2(void)
+{
+    if((P2IN & BIT1) == 0)
+    {
+        is_left_switch = 1;
+    }
+    P2IFG &= ~BIT1; // IFG clear (Interrupt END)
+}
+
+// left switch interrupt
+#pragma vector=PORT1_VECTOR
+__interrupt void Port_1(void)
+{
+    if((P1IN & BIT1) == 0)
+    {
+        is_right_switch = 1;
+    }
+    P1IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
