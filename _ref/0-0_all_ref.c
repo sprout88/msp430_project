@@ -4,11 +4,13 @@
 #define ADC_MAX 4095
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
+unsigned int screen_arr[4] = {0,};
 unsigned int adc_data = 3000;
 unsigned int dynamic_segment_cnt = 0;
 
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
+unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 
 /* watchdog timer functions */
 void stop_watchdog_timer(void);
@@ -23,6 +25,7 @@ void left_switch_interrupt_handler(void);
 void init_7_segment(void);
 void init_dynamic_timer(void);
 void show_screen(unsigned int);
+void show_screen_arr();
 
 
 /* ADC functions */
@@ -128,29 +131,26 @@ void show_screen(unsigned int value){
     }
 }
 
-void show_screen_arr(unsigned int value, unsigned int idx){
-
-    int arr[4] = {0,};
-
+void show_screen_arr(){
     if (dynamic_segment_cnt > 3)
             dynamic_segment_cnt = 0; // count 순회
 
     switch (dynamic_segment_cnt)
     {
     case 0:
-        P3OUT = digits[arr[0]];
+        P3OUT = screen_arr[0];
         P4OUT = ~BIT0;
         break;
     case 1:
-        P3OUT = digits[arr[1]];
+        P3OUT = screen_arr[1];
         P4OUT = ~BIT1;
         break;
     case 2:
-        P3OUT = digits[arr[2]];
+        P3OUT = screen_arr[2];
         P4OUT = ~BIT2;
         break;
     case 3:
-        P3OUT = digits[arr[3]];
+        P3OUT = screen_arr[3];
         P4OUT = ~BIT3;
         break;
     }
@@ -218,7 +218,14 @@ void enable_interrupt_vector(void){
 __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++;
-    show_screen(adc_data);
+    switch(screen_mode){
+        case 0:
+            show_screen_arr();
+            break;
+        case 1:
+            show_screen(adc_data);
+            break;
+    }
 }
 
 // left switch interrupt
