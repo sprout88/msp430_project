@@ -14,35 +14,33 @@ void turn_off_led(int led_num);
 
 void init_ADC_single_mode(void);
 void init_ADC_repeat_single_mode(void);
-void ADC_read_data(unsigned int* p_data);
+
+void ADC_single_read(unsigned int* p_data);
+void ADC_repeat_single_read(unsigned int* p_data);
+
+void init_motor(void);
+void set_pwm(int spin_clickwise, unsigned int speed);
+
+void enable_interrupt_vector(void);
+
 
 void main(void)
 {
+    stop_watchdog_timer();
+
     init_led(1);
     init_led(2);
-
-    init_ADC();
+    init_motor();
+    init_ADC_repeat_single_mode();
 
     while(1){
-
-        ADC_read_data(&data);
-
-        if(data > 3000)
-        {
-            turn_on_led(1);
-            turn_on_led(2);
-        }
-        else if(data > 2000)
-        {
-            turn_off_led(1);
-            turn_on_led(2);
-        }
-        else // data < 2000
-        {
-            turn_off_led(1);
-            turn_off_led(2);
-        }
+        ADC_repeat_single_read_data(data);
+        set_pwm(1,data>>2);
     }
+}
+
+void stop_watchdog_timer(void){
+    WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
 
 void init_led(int led_num){
@@ -108,8 +106,42 @@ void init_ADC_repeat_single_mode(void){
     ADC12CTL0 |= ADC12SC; // REPEAT SINGLE MODE
 }
 
-void ADC_read_data(unsigned int* p_data){
+void ADC_single_read(unsigned int* p_data){
     ADC12CTL0 |= ADC12SC; // ADC control register set
     while(!(ADC12IFG & BIT0)); // prevent reading previous data
     *p_data = ADC12MEM0; // data save
+}
+
+void ADC_repeat_single_read(unsigned int* p_data){
+    *p_data = ADC12MEM0;
+}
+
+void set_pwm(int spin_clockwise, unsigned int speed){
+    switch(spin_clockwise){
+        case 1: // spin in clockwise
+            TA2CCR2 = speed;
+            break;
+        case 2: // spin in anti-clockwise
+            TA2CCR1 = speed;
+    }
+}
+
+void init_motor(void){
+    P2DIR |= (BIT0 | BIT2);
+    P2OUT &= ~(BIT0 | BIT2);
+
+    /* PWM SET */
+    P2DIR |= (BIT5 | BIT4);
+    P2SEL |= (BIT5 | BIT4);
+
+    TA2CCR0 = 1000;
+    TA2CCTL2 = OUTMOD_6;
+    TA2CCR2 = 0;
+    TA2CCTL1 = OUTMOD_6;
+    TA2CCR1 = 0;
+    TA2CTL = TASSEL_2 + MC_1;
+}
+
+void enable_interrupt_vector(void){
+    __bis_SR_register(GIE);
 }
