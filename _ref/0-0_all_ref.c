@@ -1,7 +1,12 @@
 #include <msp430.h>
+#define ADC_MAX 4095
+#define ADC_MIN 1081
+#define ADC_DELTA 3014
+#define LINEAR_MAX 2
+#define LINEAR_MIN 0
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
-unsigned int adc_data = 4143;
+unsigned int adc_data = 3000;
 unsigned int dynamic_segment_cnt = 0;
 
 unsigned int is_left_switch = 0;
@@ -31,12 +36,20 @@ void ADC_repeat_single_read(unsigned int* p_data);
 /* interrupt functions */
 void enable_interrupt_vector(void);
 
+////////////////////////////////////
+
+
+// ### Original Functions Prototypes
+
 // ### Main ###
 void main(void) {
 
 }
 
-// ### interrupt handlers
+// ### Original Function declare
+/* Write Your Function Here */
+
+// ### override functions
 void left_switch_interrupt_handler(void){
     // write your code here
 }
@@ -45,7 +58,10 @@ void right_switch_interrupt_handler(void){
     // write your code here
 }
 
-// general functions
+///////////////////////////////////////
+
+//
+// ### non-override functions
 void stop_watchdog_timer(void){
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
