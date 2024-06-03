@@ -9,6 +9,7 @@ void stop_watchdog_timer(void);
 
 /* switch functions */
 void init_right_switch(void);
+void init_left_switch(void);
 
 /* 7 segment functions */
 void init_7_segment(void);
@@ -38,16 +39,23 @@ void main(void) {
 }
 
 void init_right_switch(void){
-    /* Right Switch */
     P1OUT |= BIT1; // DIR
     P1REN |= BIT1; // pull up resister
 
-    // Right Switch's Interrupt
     P1IE |= BIT1; // Interrupt Enable
     P1IES |= BIT1; // Interrupt edge select : Falling Edge
     P1IFG &= ~BIT1; // interrupt flag
-    /* END Right Switch */
 }
+
+void init_left_switch(void){
+    P2OUT |= BIT1; // DIR
+    P2REN |= BIT1; // pull up resister
+
+    P2IE |= BIT1; // Interrupt Enable
+    P2IES |= BIT1; // Interrupt edge select : Falling Edge
+    P2IFG &= ~BIT1; // interrupt flag
+}
+
 void init_7_segment(void){
     /* 7 segment Digital Output */
     P3DIR |= 0xffff;
