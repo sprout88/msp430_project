@@ -1,7 +1,7 @@
 ////////////////////////////////////
 
 // ### Original Functions Prototypes
-unsigned int scaled_linear_transform(int value, int scale, int in_min, int in_max, int out_min, int out_max);
+unsigned int scale_transform(int input);
 
 // ### Main ###
 void main(void) {
@@ -14,19 +14,25 @@ void main(void) {
     enable_interrupt_vector();
     while (1)
     {
-        adc_data = scaled_linear_transform(adc_data, 10, ADC_MIN, ADC_MAX, LINEAR_MAX, LINEAR_MIN);
+        adc_data = scale_transform(adc_data)
     }
 }
 
 // ### Original Function declare
-unsigned int scaled_linear_transform(int value, int scale, int in_min, int in_max, int out_min, int out_max) {
-    if (value < in_min || value > in_max) {
+unsigned int scale_transform(int input) {
+    if (input < ADC_MIN || input > ADC_MAX) {
         return 1111; // out of range Error
     }
-    int linear_transformed_value = (value - in_min) * (out_max - out_min) * scale / (in_max - in_min) + (out_min * scale);
-    return linear_transformed_value;
-}
 
+    int quotient = 0;
+    int dividend = 10 * (input - ADC_MIN);
+
+    while ((dividend - ADC_DELTA_TEN_TIME) >= 0) {
+        dividend -= ADC_DELTA_TEN_TIME;
+        quotient++;
+    }
+    return quotient;
+}
 // ### override functions
 void left_switch_interrupt_handler(void){
     

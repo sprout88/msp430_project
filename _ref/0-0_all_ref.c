@@ -1,9 +1,7 @@
 #include <msp430.h>
-#define ADC_MAX 4095
+#define ADC_DELTA_TEN_TIME 1507
 #define ADC_MIN 1081
-#define ADC_DELTA 3014
-#define LINEAR_MAX 2
-#define LINEAR_MIN 0
+#define ADC_MAX 4095
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int adc_data = 3000;
