@@ -4,6 +4,10 @@
 #define ADC_MAX 4095
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
+unsigned int special_digits[] = {
+    0xdb, /* test */
+    0x50 /* test2 */
+};
 unsigned int screen_arr[4] = {0,};
 unsigned int adc_data = 3000;
 unsigned int dynamic_segment_cnt = 0;
@@ -52,7 +56,7 @@ void main(void) {
     screen_arr[0] = digits[0];
     screen_arr[1] = digits[1];
     screen_arr[2] = digits[2];
-    screen_arr[3] = digits[3];
+    screen_arr[3] = special_digits[1];
     while(1){
 
     }
