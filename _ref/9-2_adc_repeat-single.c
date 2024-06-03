@@ -34,7 +34,7 @@ void main(void)
     init_ADC_repeat_single_mode();
 
     while(1){
-        ADC_repeat_single_read_data(data);
+        ADC_repeat_single_read(data);
         set_pwm(1,data>>2);
     }
 }
