@@ -4,12 +4,23 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 unsigned int adc_data = 4143;
 unsigned int dynamic_segment_cnt = 0;
 
+/* watchdog timer functions */
+void stop_watchdog_timer(void);
+
+/* switch functions */
 void init_right_switch(void);
+
+/* 7 segment functions */
 void init_7_segment(void);
+void show_screen(unsigned int);
 void init_dynamic_timer(void);
 
-void show_screen(unsigned int);
+/* ADC functions */
+void init_ADC_single_mode(void);
+void ADC_read_data(unsigned int* p_data);
 
+/* interrupt functions */
+void enable_interrupt_vector(void);
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
@@ -79,6 +90,9 @@ void show_screen(unsigned int value){
     }
 }
 
+void enable_interrupt_vector(void){
+    __bis_SR_register(GIE);
+}
 
 // Timer interrupt service routine
 // 7 Segment Dinamic 구동 타이머
