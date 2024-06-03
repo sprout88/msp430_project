@@ -12,10 +12,9 @@ void init_led(int led_num);
 void turn_on_led(int led_num);
 void turn_off_led(int led_num);
 
-void init_ADC(void);
+void init_ADC_single_mode(void);
+void init_ADC_repeat_single_mode(void);
 void ADC_read_data(unsigned int* p_data);
-
-
 
 void main(void)
 {
@@ -83,7 +82,7 @@ void turn_off_led(int led_num){
     }
 }
 
-void init_ADC(void){
+void init_ADC_single_mode(void){
     P6SEL |= BIT0; // ADC DIR
 
     /* ADC12 control register set */
@@ -93,6 +92,20 @@ void init_ADC(void){
     ADC12CTL1 = ADC12SHP; // sample hold : pulse mode
     ADC12MCTL0 = ADC12INCH_0; // input channel=A0
     ADC12CTL0 |= ADC12ENC; // ADC12 encoding=enable
+}
+
+void init_ADC_repeat_single_mode(void){
+    P6SEL |= BIT0; // ADC DIR
+
+    /* ADC12 control register set */
+    /* sample hold time : 16 adc clock cycles, ADC12 ON */
+
+    ADC12CTL0 = ADC12SHT02 + ADC12MSC + ADC12ON; //ADC REPEAT SINGLE MODE
+    ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2; // sample hold : pulse mode, REPEAT SINGLE MODE
+    ADC12MCTL0 = ADC12INCH_0; // input channel=A0
+    ADC12CTL0 |= ADC12ENC; // ADC12 encoding=enable
+
+    ADC12CTL0 |= ADC12SC; // REPEAT SINGLE MODE
 }
 
 void ADC_read_data(unsigned int* p_data){
