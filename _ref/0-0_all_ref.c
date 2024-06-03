@@ -151,7 +151,7 @@ void right_switch_interrupt_handler(void){
 }
 
 // Timer interrupt service routine
-// 7 Segment Dinamic 구동 타이머
+// 7 Segment Dynamic 구동 타이머
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
 {
