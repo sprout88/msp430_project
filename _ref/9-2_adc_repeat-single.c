@@ -19,7 +19,7 @@ void ADC_single_read(unsigned int* p_data);
 void ADC_repeat_single_read(unsigned int* p_data);
 
 void init_motor(void);
-void set_pwm(int spin_clickwise, unsigned int speed);
+void set_pwm(int spin_clockwise, unsigned int speed);
 
 void enable_interrupt_vector(void);
 
@@ -34,7 +34,7 @@ void main(void)
     init_ADC_repeat_single_mode();
 
     while(1){
-        ADC_repeat_single_read(data);
+        ADC_repeat_single_read(&data);
         set_pwm(1,data>>2);
     }
 }
@@ -123,6 +123,7 @@ void set_pwm(int spin_clockwise, unsigned int speed){
             break;
         case 2: // spin in anti-clockwise
             TA2CCR1 = speed;
+            break;
     }
 }
 
