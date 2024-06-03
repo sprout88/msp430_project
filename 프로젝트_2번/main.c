@@ -17,7 +17,7 @@ void init_dynamic_timer(void);
 
 /* ADC functions */
 void init_ADC_single_mode(void);
-void ADC_read_data(unsigned int* p_data);
+void ADC_single_read(unsigned int* p_data);
 
 /* interrupt functions */
 void enable_interrupt_vector(void);

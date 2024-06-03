@@ -14,7 +14,7 @@ void turn_off_led(int led_num);
 
 void init_ADC_single_mode(void);
 void init_ADC_repeat_single_mode(void);
-void ADC_read_data(unsigned int* p_data);
+void ADC_single_read(unsigned int* p_data);
 
 void main(void)
 {
@@ -25,7 +25,7 @@ void main(void)
 
     while(1){
 
-        ADC_read_data(&data);
+        ADC_single_read(&data);
 
         if(data > 3000)
         {
@@ -108,7 +108,7 @@ void init_ADC_repeat_single_mode(void){
     ADC12CTL0 |= ADC12SC; // REPEAT SINGLE MODE
 }
 
-void ADC_read_data(unsigned int* p_data){
+void ADC_single_read(unsigned int* p_data){
     ADC12CTL0 |= ADC12SC; // ADC control register set
     while(!(ADC12IFG & BIT0)); // prevent reading previous data
     *p_data = ADC12MEM0; // data save
