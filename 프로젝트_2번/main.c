@@ -52,6 +52,7 @@ unsigned int scale_transform(int input);
 // ### Main ###
 void main(void) {
     init_7_segment();
+    init_right_switch();
     init_left_switch();
     init_ADC_single_mode();
     enable_interrupt_vector();
@@ -73,7 +74,7 @@ void right_switch_interrupt_handler(void){
     if(scaled_adc_data != 1111){
         screen_arr[3] = digits[0];
         screen_arr[2] = digits[scaled_adc_data%10];
-        screen_arr[0] = special_digits[0]; // dot
+        screen_arr[1] = special_digits[0]; // dot
         screen_arr[0] = digits[scaled_adc_data/10%10];
     }
 }
@@ -249,14 +250,14 @@ __interrupt void TIMER0_A0_ISR(void)
     }
 }
 
-// left switch interrupt
+// right switch interrupt
 #pragma vector=PORT2_VECTOR
 __interrupt void Port_2(void)
 {
     if((P2IN & BIT1) == 0)
     {
-        is_left_switch = 1;
-        left_switch_interrupt_handler();
+        is_right_switch = 1;
+        right_switch_interrupt_handler();
     }
     P2IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
@@ -267,8 +268,8 @@ __interrupt void Port_1(void)
 {
     if((P1IN & BIT1) == 0)
     {
-        is_right_switch = 1;
-        right_switch_interrupt_handler();
+        is_left_switch = 1;
+        left_switch_interrupt_handler();
     }
     P1IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
