@@ -34,6 +34,9 @@ void ADC_repeat_single_read(unsigned int* p_data);
 /* interrupt functions */
 void enable_interrupt_vector(void);
 
+/* custom functions for solve projects */
+unsigned int scale_transform(int input);
+
 ////////////////////////////////////
 
 
@@ -101,7 +104,6 @@ void init_dynamic_timer(void){
 }
 
 void show_screen(unsigned int value){
-
     if (dynamic_segment_cnt > 3)
         dynamic_segment_cnt = 0; // count 순회
 
@@ -124,6 +126,49 @@ void show_screen(unsigned int value){
         P4OUT = ~BIT3;
         break;
     }
+}
+
+void show_screen_arr(unsigned int value, unsigned int idx){
+
+    int arr[4] = {0,};
+
+    if (dynamic_segment_cnt > 3)
+            dynamic_segment_cnt = 0; // count 순회
+
+    switch (dynamic_segment_cnt)
+    {
+    case 0:
+        P3OUT = digits[arr[0]];
+        P4OUT = ~BIT0;
+        break;
+    case 1:
+        P3OUT = digits[arr[1]];
+        P4OUT = ~BIT1;
+        break;
+    case 2:
+        P3OUT = digits[arr[2]];
+        P4OUT = ~BIT2;
+        break;
+    case 3:
+        P3OUT = digits[arr[3]];
+        P4OUT = ~BIT3;
+        break;
+    }
+}
+
+unsigned int scale_transform(int input) {
+    if (input < ADC_MIN || input > ADC_MAX) {
+        return 1111; // out of range Error
+    }
+
+    int quotient = 0;
+    int dividend = 10 * (input - ADC_MIN);
+
+    while ((dividend - ADC_DELTA_TEN_TIME) >= 0) {
+        dividend -= ADC_DELTA_TEN_TIME;
+        quotient++;
+    }
+    return quotient;
 }
 
 void init_ADC_single_mode(void){
