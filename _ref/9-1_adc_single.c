@@ -9,10 +9,13 @@ unsigned int data = 0;
 void stop_watchdog_timer(void);
 
 void init_led(int led_num);
-void init_ADC(void);
-
 void turn_on_led(int led_num);
 void turn_off_led(int led_num);
+
+void init_ADC(void);
+void ADC_read_data(unsigned int* p_data);
+
+
 
 void main(void)
 {
@@ -22,9 +25,8 @@ void main(void)
     init_ADC();
 
     while(1){
-        ADC12CTL0 |= ADC12SC;
-        while(!(ADC12IFG & BIT0));
-        data = ADC12MEM0;
+
+        ADC_read_data(&data);
 
         if(data > 3000)
         {
@@ -91,4 +93,10 @@ void init_ADC(void){
     ADC12CTL1 = ADC12SHP; // sample hold : pulse mode
     ADC12MCTL0 = ADC12INCH_0; // input channel=A0
     ADC12CTL0 |= ADC12ENC; // ADC12 encoding=enable
+}
+
+void ADC_read_data(unsigned int* p_data){
+    ADC12CTL0 |= ADC12SC;
+    while(!(ADC12IFG & BIT0));
+    *p_data = ADC12MEM0;
 }
