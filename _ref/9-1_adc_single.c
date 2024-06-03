@@ -96,7 +96,7 @@ void init_ADC(void){
 }
 
 void ADC_read_data(unsigned int* p_data){
-    ADC12CTL0 |= ADC12SC;
-    while(!(ADC12IFG & BIT0));
-    *p_data = ADC12MEM0;
+    ADC12CTL0 |= ADC12SC; // ADC control register set
+    while(!(ADC12IFG & BIT0)); // prevent reading previous data
+    *p_data = ADC12MEM0; // data save
 }
