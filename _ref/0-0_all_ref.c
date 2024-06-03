@@ -36,6 +36,16 @@ void main(void) {
 
 }
 
+// ### interrupt handlers
+void left_switch_interrupt_handler(void){
+    // write your code here
+}
+
+void right_switch_interrupt_handler(void){
+    // write your code here
+}
+
+// general functions
 void stop_watchdog_timer(void){
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
@@ -141,14 +151,6 @@ void ADC_repeat_single_read(unsigned int* p_data){
 
 void enable_interrupt_vector(void){
     __bis_SR_register(GIE);
-}
-
-void left_switch_interrupt_handler(void){
-    // write your code here
-}
-
-void right_switch_interrupt_handler(void){
-    // write your code here
 }
 
 // Timer interrupt service routine

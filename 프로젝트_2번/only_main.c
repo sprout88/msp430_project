@@ -4,6 +4,7 @@ void main(void) {
 
     init_left_switch();
     init_7_segment();
+    init_ADC_single_mode();
 
     enable_interrupt_vector();
     while (1)
