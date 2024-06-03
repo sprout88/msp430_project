@@ -18,8 +18,9 @@ void left_switch_interrupt_handler(void);
 
 /* 7 segment functions */
 void init_7_segment(void);
-void show_screen(unsigned int);
 void init_dynamic_timer(void);
+void show_screen(unsigned int);
+
 
 /* ADC functions */
 void init_ADC_single_mode(void);
