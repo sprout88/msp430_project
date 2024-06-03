@@ -24,18 +24,7 @@ void ADC_single_read(unsigned int* p_data);
 void enable_interrupt_vector(void);
 
 void main(void) {
-    WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
-
-    init_left_switch();
-    init_7_segment();
-    init_dynamic_timer();
-
-    __bis_SR_register(GIE); // Interrupt enable
-
-    while (1)
-    {
-
-    }
+    // Write Your Code Here
 }
 
 void init_right_switch(void){
