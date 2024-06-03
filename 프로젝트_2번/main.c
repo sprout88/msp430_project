@@ -47,7 +47,15 @@ unsigned int scale_transform(int input);
 
 // ### Main ###
 void main(void) {
-
+    init_7_segment();
+    enable_interrupt_vector();
+    screen_arr[0] = digits[0];
+    screen_arr[1] = digits[1];
+    screen_arr[2] = digits[2];
+    screen_arr[3] = digits[3];
+    while(1){
+        
+    }
 }
 
 // ### Original Function declare
