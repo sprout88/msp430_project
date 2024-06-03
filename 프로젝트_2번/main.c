@@ -5,12 +5,12 @@
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
-    0xdb, /* test */
-    0x50 /* test2 */
+    0x20, /* dot */
 };
-unsigned int screen_arr[4] = {0,};
+unsigned int screen_arr[4] = {0xdb,0xdb,0xdb,0xdb};
 unsigned int adc_data = 3000;
 unsigned int dynamic_segment_cnt = 0;
+unsigned int tmp1 = 0;
 
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
@@ -52,13 +52,12 @@ unsigned int scale_transform(int input);
 // ### Main ###
 void main(void) {
     init_7_segment();
+    init_left_switch();
+    init_ADC_single_mode();
     enable_interrupt_vector();
-    screen_arr[0] = digits[0];
-    screen_arr[1] = digits[1];
-    screen_arr[2] = digits[2];
-    screen_arr[3] = special_digits[1];
-    while(1){
 
+    while(1){
+        
     }
 }
 
@@ -66,11 +65,21 @@ void main(void) {
 /* Write Your Function Here */
 
 // ### override functions
-void left_switch_interrupt_handler(void){
-    // write your code here
+
+// right switch dir p2.1
+void right_switch_interrupt_handler(void){
+    ADC_single_read(&adc_data);
+    int scaled_adc_data = scale_transform(adc_data);
+    if(scaled_adc_data != 1111){
+        screen_arr[3] = digits[0];
+        screen_arr[2] = digits[scaled_adc_data%10];
+        screen_arr[0] = special_digits[0]; // dot
+        screen_arr[0] = digits[scaled_adc_data/10%10];
+    }
 }
 
-void right_switch_interrupt_handler(void){
+// left switch dir p1.1
+void left_switch_interrupt_handler(void){
     // write your code here
 }
 
@@ -82,7 +91,7 @@ void stop_watchdog_timer(void){
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
 
-void init_right_switch(void){
+void init_left_switch(void){
     P1OUT |= BIT1; // DIR
     P1REN |= BIT1; // pull up resister
 
@@ -91,7 +100,7 @@ void init_right_switch(void){
     P1IFG &= ~BIT1; // interrupt flag
 }
 
-void init_left_switch(void){
+void init_right_switch(void){
     P2OUT |= BIT1; // DIR
     P2REN |= BIT1; // pull up resister
 
