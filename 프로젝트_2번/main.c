@@ -24,11 +24,10 @@ void ADC_single_read(unsigned int* p_data);
 void enable_interrupt_vector(void);
 
 void main(void) {
-    WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
+    stop_watchdog_timer();
 
     init_left_switch();
     init_7_segment();
-    init_dynamic_timer();
 
     __bis_SR_register(GIE); // Interrupt enable
 
@@ -63,7 +62,9 @@ void init_7_segment(void){
     P4DIR |= 0x000f;
     P4OUT &= ~BIT0;
     /* END 7 segment Digital Output */
+    init_dynamic_timer();
 }
+
 void init_dynamic_timer(void){
     /* Timer - Timer0 */
     TA0CCTL0 = CCIE;
