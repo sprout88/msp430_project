@@ -1,5 +1,6 @@
 /*
 ADC 를 돌리면, 모터가 돌아간다.
+모터를 돌리려면 ADC 의 repeat_single mode 를 사용해야함.
 */
 
 #include <msp430.h>
