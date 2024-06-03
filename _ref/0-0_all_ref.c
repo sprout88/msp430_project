@@ -13,6 +13,8 @@ void stop_watchdog_timer(void);
 /* switch functions */
 void init_right_switch(void);
 void init_left_switch(void);
+void right_switch_interrupt_handler(void);
+void left_switch_interrupt_handler(void);
 
 /* 7 segment functions */
 void init_7_segment(void);
@@ -97,6 +99,14 @@ void enable_interrupt_vector(void){
     __bis_SR_register(GIE);
 }
 
+void left_switch_interrupt_handler(void){
+
+}
+
+void right_switch_interrupt_handler(void){
+    
+}
+
 // Timer interrupt service routine
 // 7 Segment Dinamic 구동 타이머
 #pragma vector=TIMER0_A0_VECTOR
@@ -113,6 +123,7 @@ __interrupt void Port_2(void)
     if((P2IN & BIT1) == 0)
     {
         is_left_switch = 1;
+        left_switch_interrupt_handler();
     }
     P2IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
@@ -124,6 +135,7 @@ __interrupt void Port_1(void)
     if((P1IN & BIT1) == 0)
     {
         is_right_switch = 1;
+        right_switch_interrupt_handler();
     }
     P1IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
