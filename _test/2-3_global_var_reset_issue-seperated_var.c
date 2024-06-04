@@ -16,7 +16,7 @@ unsigned int temp_for_interrupt = 12;
 
 /* watchdog timer functions */
 
-//void stop_watchdog_timer(void); // 이것을 주석처리하여 watchdog_timer 를 끌 수 있다.
+void stop_watchdog_timer(void);
 
 /* switch functions */
 void init_right_switch(void);
@@ -34,7 +34,7 @@ void enable_interrupt_vector(void);
 
 // ### Main ###
 void main(void) {
-    //stop_watchdog_timer(); // 이 코드가 없으면 while loop 에서 일정 시간이 흐르고 나면 전역변수가 초기화됨.
+    //stop_watchdog_timer(); // 워치독 타이머 끄기. 주석 시 켜져있음
     init_right_switch();
     enable_interrupt_vector();
 

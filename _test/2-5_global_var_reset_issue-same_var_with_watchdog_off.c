@@ -9,6 +9,9 @@
     일정 클록 이후 다시 B로 리셋된다. (A로 리셋되는 것이 아니라, 바로 이전 값으로 reset 된다.)
 
     -> 아마도 바로 이전 상태를 저장하는 어떤 구조가 있는 것 같다.
+
+ 4. watchdog_timer 를 끄면
+    interrupt function 으로 바꾼 값이 reset 되지 않고 유지된다.
 */
 
 #include <msp430.h>
@@ -38,7 +41,7 @@ void enable_interrupt_vector(void);
 
 // ### Main ###
 void main(void) {
-    //stop_watchdog_timer(); // 워치독 타이머 끄기. 주석 시 켜져있음
+    stop_watchdog_timer(); // 워치독 타이머 끄기. 주석 시 켜져있음
     init_right_switch();
     enable_interrupt_vector();
 
