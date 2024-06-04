@@ -37,6 +37,7 @@ void init_ADC_single_mode(void);
 void init_ADC_repeat_single_mode(void);
 void ADC_single_read(unsigned int* p_data);
 void ADC_repeat_single_read(unsigned int* p_data);
+void adc_to_segment(void);
 
 /* interrupt functions */
 void enable_interrupt_vector(void);
@@ -72,6 +73,20 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
+    adc_to_segment();
+}
+
+// left switch dir p1.1
+void left_switch_interrupt_handler(void){
+    // write your code here
+}
+
+///////////////////////////////////////
+
+//
+// ### non-override functions
+
+void adc_to_segment(void){
     ADC_single_read(&adc_data);
     int scaled_adc_data = scale_transform(adc_data);
     if(scaled_adc_data != 1111){
@@ -84,15 +99,6 @@ void right_switch_interrupt_handler(void){
     }
 }
 
-// left switch dir p1.1
-void left_switch_interrupt_handler(void){
-    // write your code here
-}
-
-///////////////////////////////////////
-
-//
-// ### non-override functions
 void stop_watchdog_timer(void){
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
