@@ -44,7 +44,11 @@ void toggle_led_per_time_ms(unsigned int toggle_interval_ms);
 void init_7_segment(void);
 void init_smclk(void);
 void show_screen(unsigned int);
-void show_screen_arr();
+void show_screen_arr(void);
+
+/* keypad functions */
+void init_keypad(void);
+void keypad_controller(void);
 
 
 /* ADC functions */
@@ -99,7 +103,7 @@ void right_switch_interrupt_handler(void){
     adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
     
     if(toggle_lock == 1){ // adc_scaled_sec 로 led를 이미 toggle 중이였다면 종료 후 모터 모드로 전환
-        
+
     }
 
     toggle_lock = 1;
@@ -362,6 +366,80 @@ void toggle_led(int led_num){
     }
 }
 
+void init_keypad(void){
+    // output
+    P2DIR |= (BIT0 | BIT2 | BIT3);
+    P2OUT |= (BIT0 | BIT2 | BIT3); // all high
+
+    // input
+    P6REN |= (BIT3 | BIT4 | BIT5 | BIT6);
+    P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
+}
+
+void keypad_controller(unsigned int* key, unsigned int* data){
+    // columns 1
+    P2OUT &= ~BIT2;
+    P2OUT |= (BIT0 | BIT3);
+
+    if ((P6IN & BIT3) == 0) // Button 1
+    {
+        key = 1;
+    }
+    else if ((P6IN & BIT6) == 0) // Button 4
+    {
+        key = 4;
+    }
+    else if ((P6IN & BIT5) == 0) // Button 7
+    {
+        key = 7;
+    }
+    else if ((P6IN & BIT4) == 0) // Button *
+    {
+        key = 11; // star
+    }
+
+    // columns 2
+    P2OUT &= ~BIT0;
+    P2OUT |= (BIT2 | BIT3);
+
+    if ((P6IN & BIT3) == 0) // Button 2
+    {
+        key = 2;
+    }
+    else if ((P6IN & BIT6) == 0) // Button 5
+    {
+        key = 5;
+    }
+    else if ((P6IN & BIT5) == 0) // Button 8
+    {
+        key = 8;
+    }
+    else if ((P6IN & BIT4) == 0) // Button 0
+    {
+        key = 0;
+    }
+
+    // columns 3
+    P2OUT &= ~BIT3;
+    P2OUT |= (BIT0 | BIT2);
+
+    if ((P6IN & BIT3) == 0) // Button 3
+    {
+        key = 3;
+    }
+    else if ((P6IN & BIT6) == 0) // Button 6
+    {
+        key = 6;
+    }
+    else if ((P6IN & BIT5) == 0) // Button 9
+    {
+        key = 9;
+    }
+    else if ((P6IN & BIT4) == 0) // Button #
+    {
+        key = 12; // sharp
+    }
+}
 
 // Timer interrupt service routine
 // 1ms 마다 호출됨
