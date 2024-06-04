@@ -14,7 +14,7 @@ unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
 unsigned int tmp1 = 0;
 unsigned int scaled_adc_data = 0;
-unsigned int runtime_ms = 0;
+unsigned int ms_timer_1 = 0;
 unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
@@ -262,10 +262,12 @@ void enable_interrupt_vector(void){
 }
 
 void toggle_led_per_time(unsigned int toggle_interval_ms){
+
     if(toggle_lock==1){
         // toggle two led per time
-        if(runtime_ms%toggle_interval_ms == 0){
-              // do something...
+        if(ms_timer_1 > toggle_interval_ms ){
+              // toggle leds
+            ms_timer_1 = 0;
         }
     }
 }
@@ -323,7 +325,7 @@ __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
     smclk_cnt++; // 1++ per 1ms, iterate
-    runtime_ms++; // 1++ per 1ms, no iterate
+    ms_timer_1++; // 1++ per 1ms, no iterate
     if(smclk_cnt>1000){ // 1초를 셈
         sec_cnt++;
         smclk_cnt=0;
