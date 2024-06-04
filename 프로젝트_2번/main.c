@@ -21,8 +21,7 @@ unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 
-char left_led_on = 0;
-char right_led_on = 0;
+char p4_7_left_led_on = 0; // led and screen error fix
 
 /* watchdog timer functions */
 void stop_watchdog_timer(void);
@@ -81,7 +80,9 @@ void main(void) {
     enable_interrupt_vector();
 
     while(1){
+        //turn_on_led(2);
         show_screen_arr();
+        //show_screen(6983);
         //toggle_led_per_time(3000); // TEST time
     }
 }
@@ -167,19 +168,31 @@ void show_screen(unsigned int value){
     {
     case 0:
         P3OUT = digits[value%10];
-        P4OUT = ~BIT0;
+        if(p4_7_left_led_on) // segment : XXXO
+            P4OUT = 0x8E;
+        else
+            P4OUT = 0x0E;
         break;
     case 1:
         P3OUT = digits[value/10%10];
-        P4OUT = ~BIT1;
+        if(p4_7_left_led_on) // segment : XXOX
+            P4OUT = 0x8D;
+        else
+            P4OUT = 0x0D;
         break;
     case 2:
         P3OUT = digits[value/100%10];
-        P4OUT = ~BIT2;
+        if(p4_7_left_led_on) // segment : XOXX
+            P4OUT = 0x8B;
+        else
+            P4OUT = 0x0B;
         break;
     case 3:
         P3OUT = digits[value/1000%10];
-        P4OUT = ~BIT3;
+        if(p4_7_left_led_on) // segment : OXXX
+            P4OUT = 0x87;
+        else
+            P4OUT = 0x07;
         break;
     }
 }
@@ -192,19 +205,31 @@ void show_screen_arr(void){
     {
     case 0:
         P3OUT = screen_arr[0];
-        P4OUT = ~BIT0; // segment : XXXO
+        if(p4_7_left_led_on) // segment : XXXO
+            P4OUT = 0x8E;
+        else
+            P4OUT = 0x0E;
         break;
     case 1:
         P3OUT = screen_arr[1];
-        P4OUT = ~BIT1; // segment : XXOX
+        if(p4_7_left_led_on) // segment : XXOX
+            P4OUT = 0x8D;
+        else
+            P4OUT = 0x0D;
         break;
     case 2:
         P3OUT = screen_arr[2];
-        P4OUT = ~BIT2; // segment : XOXX
+        if(p4_7_left_led_on) // segment : XOXX
+            P4OUT = 0x8B;
+        else
+            P4OUT = 0x0B;
         break;
     case 3:
         P3OUT = screen_arr[3];
-        P4OUT = ~BIT3; // segment : OXXX
+        if(p4_7_left_led_on) // segment : OXXX
+            P4OUT = 0x87;
+        else
+            P4OUT = 0x07;
         break;
     }
 }
@@ -307,6 +332,7 @@ void turn_on_led(int led_num){
             break;
         case 2:
             P4OUT |= BIT7; // LED2 ON
+            p4_7_left_led_on = 1; // p4.7 led and segment pin duplicate error fix
             break;
     }
 }
@@ -317,6 +343,7 @@ void turn_off_led(int led_num){
             break;
         case 2:
             P4OUT &= ~BIT7; // LED2 OFF
+            p4_7_left_led_on = 0; // p4.7 led and segment pin duplicate error fix
             break;
     }
 }
@@ -341,14 +368,6 @@ __interrupt void TIMER0_A0_ISR(void)
     if(smclk_cnt>1000){ // 1초를 셈
         sec_cnt++;
         smclk_cnt=0;
-    }
-    switch(screen_mode){
-        case 0:
-            show_screen_arr();
-            break;
-        case 1:
-            show_screen(adc_data);
-            break;
     }
 }
 
