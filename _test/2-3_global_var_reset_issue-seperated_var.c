@@ -1,12 +1,22 @@
+/* 워치독 타이머 전역변수 오류 */
+
+/* 
+ 1. watchdog_timer 를 끄지 않은 상태에서, 전역변수를 함수로 바꿔도 일정 클럭 이후 초기화 되지는 않는다.
+ 2. watchdog_timer 를 끄지 않은 상태에서, 전역변수를 interrupt 로 바꾸면 일정 클럭 이후 초기화 된다.
+
+*/
+
 #include <msp430.h>
 #define ADC_DELTA_TEN_TIME 1507
 #define ADC_MIN 1081
 #define ADC_MAX 4095
 
 unsigned int temp = 4;
+unsigned int temp_for_interrupt = 12;
 
 /* watchdog timer functions */
-void stop_watchdog_timer(void);
+
+//void stop_watchdog_timer(void); // 이것을 주석처리하여 watchdog_timer 를 끌 수 있다.
 
 /* switch functions */
 void init_right_switch(void);
@@ -62,7 +72,7 @@ void init_right_switch(void){
 }
 
 void right_switch_interrupt_handler(void){
-    //temp = 326;
+    temp_for_interrupt = 94;
 }
 
 
