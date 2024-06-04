@@ -9,11 +9,13 @@ unsigned int special_digits[] = {
 };
 unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0x5d};
 unsigned int adc_data = 3000;
+unsigned int scaled_adc_data = 0;
+
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
 unsigned int tmp1 = 0;
-unsigned int scaled_adc_data = 0;
+
 unsigned int ms_timer_1 = 0;
 unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int is_left_switch = 0;
@@ -36,7 +38,7 @@ void left_switch_interrupt_handler(void);
 void init_led(int led_num);
 void turn_on_led(int led_num);
 void turn_off_led(int led_num);
-void toggle_led_per_time(unsigned int toggle_interval_ms);
+void toggle_led_per_time_ms(unsigned int toggle_interval_ms);
 
 /* 7 segment functions */
 void init_7_segment(void);
@@ -80,7 +82,8 @@ void main(void) {
     enable_interrupt_vector();
 
     while(1){
-        toggle_led_per_time(3000); // only if toggle_lock = true
+        tmp1 = scaled_adc_data*100;
+        toggle_led_per_time_ms(tmp1); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
     }
 }
@@ -93,7 +96,7 @@ void main(void) {
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
     ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
-    adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr); // convert adc_data to special scaled formet and save to segment_arr
+    adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
     toggle_lock ^= 1;
 }
 
@@ -287,7 +290,7 @@ void enable_interrupt_vector(void){
     __bis_SR_register(GIE);
 }
 
-void toggle_led_per_time(unsigned int toggle_interval_ms){
+void toggle_led_per_time_ms(unsigned int toggle_interval_ms){
     if(toggle_lock==1){
         // toggle two led per time
         if(ms_timer_1 > toggle_interval_ms ){
