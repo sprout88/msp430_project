@@ -57,7 +57,8 @@ void show_screen_arr(void);
 /* keypad functions */
 void init_keypad(void);
 void keypad_input_polling_checker(void);
-void keypad_handler(unsigned int key);
+void keypad_push_handler(unsigned int key);
+void keypad_release_handler(unsigned int key);
 
 /* motor and encoder functions */
 void init_motor(void);
@@ -132,7 +133,7 @@ void left_switch_interrupt_handler(void){
     // write your code here
 }
 
-void keypad_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
+void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
     switch(key){
         case 1:
             // input your handler
@@ -172,7 +173,46 @@ void keypad_handler(unsigned int key){ // 각 case 를 구현하지 않아도 �
             break;
     }
 }
-
+void keypad_release_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
+    switch(key){
+        case 1:
+            // input your handler
+            break;
+        case 2:
+            // input your handler
+            break;
+        case 3:
+            // input your handler
+            break;
+        case 4:
+            // input your handler
+            break;
+        case 5:
+            // input your handler
+            break;
+        case 6:
+            // input your handler
+            break;
+        case 7:
+            // input your handler
+            break;
+        case 8:
+            // input your handler
+            break;
+        case 9:
+            // input your handler
+            break;
+        case 10:
+            // input your handler
+            break;
+        case 11: // 11:star
+            g_clockwise_pwm++;
+            break;
+        case 12: // 12:sharp
+            g_anti_clockwise_pwm++;
+            break;
+    }
+}
 ///////////////////////////////////////
 
 //
@@ -442,19 +482,22 @@ void keypad_input_polling_checker(void){
 
     if ((P6IN & BIT3) == 0) // Button 1
     {
-        keypad_handler(1);
+        while(((P6IN & BIT3) == 0)){
+            //keypad_release_handler(1);
+        }
+        keypad_push_handler(1);
     }
     else if ((P6IN & BIT6) == 0) // Button 4
     {
-        keypad_handler(4);
+        keypad_push_handler(4);
     }
     else if ((P6IN & BIT5) == 0) // Button 7
     {
-        keypad_handler(7);
+        keypad_push_handler(7);
     }
     else if ((P6IN & BIT4) == 0) // Button *
     {
-        keypad_handler(11); //11:*
+        keypad_push_handler(11); //11:*
     }
 
     // columns 2
@@ -463,19 +506,19 @@ void keypad_input_polling_checker(void){
 
     if ((P6IN & BIT3) == 0) // Button 2
     {
-        keypad_handler(2);
+        keypad_push_handler(2);
     }
     else if ((P6IN & BIT6) == 0) // Button 5
     {
-        keypad_handler(5);
+        keypad_push_handler(5);
     }
     else if ((P6IN & BIT5) == 0) // Button 8
     {
-        keypad_handler(8);
+        keypad_push_handler(8);
     }
     else if ((P6IN & BIT4) == 0) // Button 0
     {
-        keypad_handler(0);
+        keypad_push_handler(0);
     }
 
     // columns 3
@@ -484,19 +527,19 @@ void keypad_input_polling_checker(void){
 
     if ((P6IN & BIT3) == 0) // Button 3
     {
-        keypad_handler(3);
+        keypad_push_handler(3);
     }
     else if ((P6IN & BIT6) == 0) // Button 6
     {
-        keypad_handler(6);
+        keypad_push_handler(6);
     }
     else if ((P6IN & BIT5) == 0) // Button 9
     {
-        keypad_handler(9);
+        keypad_push_handler(9);
     }
     else if ((P6IN & BIT4) == 0) // Button #
     {
-       keypad_handler(12); // 12:sharp
+       keypad_push_handler(12); // 12:sharp
     }
 }
 
