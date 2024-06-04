@@ -483,9 +483,9 @@ void keypad_input_polling_checker(void){
     if ((P6IN & BIT3) == 0) // Button 1
     {
         while(((P6IN & BIT3) == 0)){
-            //keypad_release_handler(1);
+            keypad_push_handler(1);
         }
-        keypad_push_handler(1);
+        keypad_release_handler(1);
     }
     else if ((P6IN & BIT6) == 0) // Button 4
     {
