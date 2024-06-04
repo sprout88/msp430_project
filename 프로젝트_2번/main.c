@@ -25,6 +25,12 @@ unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 
+unsigned int g_clockwise_pwm = 0;
+unsigned int g_anti_clockwise_pwm = 0;
+
+unsigned int g_motor_clockwise_spin_start = 0;
+unsigned int g_motor_anti_clockwise_spin_start = 0;
+
 char p4_7_left_led_on = 0; // led and screen error fix
 
 /* watchdog timer functions */
@@ -99,8 +105,7 @@ void main(void) {
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
         keypad_input_polling_checker();
-
-        set_motor_pwm(500,0); // 모터 테스트
+        set_motor_pwm(g_anti_clockwise_pwm,g_anti_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
     }
 }
 
@@ -160,10 +165,10 @@ void keypad_handler(unsigned int key){ // 각 case 를 구현하지 않아도 �
             // input your handler
             break;
         case 11: // 11:star
-            // input your handler
+            g_clockwise_pwm++;
             break;
         case 12: // 12:sharp
-            // input your handler
+            g_anti_clockwise_pwm++;
             break;
     }
 }
