@@ -14,11 +14,13 @@ unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0x5d};
 unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
+/* timers */
+unsigned int ms_timer_1 = 0;
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
 
-unsigned int ms_timer_1 = 0;
+/* locks */
 unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
