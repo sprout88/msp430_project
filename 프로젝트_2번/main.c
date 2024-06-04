@@ -50,7 +50,7 @@ void init_ADC_single_mode(void);
 void init_ADC_repeat_single_mode(void);
 void ADC_single_read(unsigned int* p_data);
 void ADC_repeat_single_read(unsigned int* p_data);
-void adc_to_segment(void);
+void scaled_adc_to_segment_arr(void);
 
 /* interrupt functions */
 void enable_interrupt_vector(void);
@@ -80,10 +80,8 @@ void main(void) {
     enable_interrupt_vector();
 
     while(1){
-        //turn_on_led(2);
-        show_screen_arr();
-        //show_screen(6983);
-        //toggle_led_per_time(3000); // TEST time
+        toggle_led_per_time(3000); // only if toggle_lock = true
+        show_screen_arr(); // show adc_data
     }
 }
 
@@ -94,8 +92,7 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
-    adc_to_segment();
-
+    scaled_adc_to_segment_arr();
     toggle_lock ^= 1;
 }
 
@@ -109,7 +106,7 @@ void left_switch_interrupt_handler(void){
 //
 // ### non-override functions
 
-void adc_to_segment(void){
+void scaled_adc_to_segment_arr(void){
     ADC_single_read(&adc_data);
     scaled_adc_data = scale_transform(adc_data);
     if(scaled_adc_data != 1111){
