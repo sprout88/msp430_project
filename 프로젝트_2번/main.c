@@ -90,8 +90,7 @@ void main(void) {
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
     adc_to_segment();
-    led_toggle_operation_toggle();
-    
+
     toggle_lock ^= 1;
 }
 
@@ -263,7 +262,7 @@ void enable_interrupt_vector(void){
 }
 
 void toggle_led_per_time(unsigned int toggle_interval_ms){
-    if(toggle_lock=1){
+    if(toggle_lock==1){
         // toggle two led per time
         if(runtime_ms%toggle_interval_ms == 0){
               // do something...
@@ -310,9 +309,9 @@ void turn_off_led(int led_num){
 void toggle_led(int led_num){
     switch(led_num){
         case 1:
-            P1OUT ^= BIT0 // LED1 TOGGLE
+            P1OUT ^= BIT0; // LED1 TOGGLE
         case 2:
-            P4OUT ^= BIT7 // LED2 TOGGLE
+            P4OUT ^= BIT7; // LED2 TOGGLE
     }
 }
 
@@ -324,7 +323,7 @@ __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
     smclk_cnt++; // 1++ per 1ms, iterate
-    runtime_ms++; // 1++ per 1ms, no iterate    
+    runtime_ms++; // 1++ per 1ms, no iterate
     if(smclk_cnt>1000){ // 1초를 셈
         sec_cnt++;
         smclk_cnt=0;
