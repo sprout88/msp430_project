@@ -123,15 +123,12 @@ void left_switch_interrupt_handler(void){
 void keypad_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
     switch(key){
         case 1:
-            tmp2 = 1;
             // input your handler
             break;
         case 2:
-            tmp2 = 2;
             // input your handler
             break;
         case 3:
-            tmp2 = 3;
             // input your handler
             break;
         case 4:
@@ -156,7 +153,6 @@ void keypad_handler(unsigned int key){ // 각 case 를 구현하지 않아도 �
             // input your handler
             break;
         case 11: // 11:star
-            tmp2 = 11;
             // input your handler
             break;
         case 12: // 12:sharp
