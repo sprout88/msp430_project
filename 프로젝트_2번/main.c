@@ -136,7 +136,7 @@ void left_switch_interrupt_handler(void){
 void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
     switch(key){
         case 0:
-            tmp2=0;
+            tmp1=0;
             // input your handler
             break;
         case 1:
