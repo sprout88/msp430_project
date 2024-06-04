@@ -27,8 +27,8 @@ unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 
-unsigned int g_clockwise_pwm = 0;
 unsigned int g_anti_clockwise_pwm = 0;
+unsigned int g_clockwise_pwm = 0;
 
 unsigned int g_motor_clockwise_spin_start = 0;
 unsigned int g_motor_anti_clockwise_spin_start = 0;
@@ -108,7 +108,7 @@ void main(void) {
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
         keypad_input_polling_checker();
-        set_motor_pwm(g_clockwise_pwm,g_anti_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+        set_motor_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
     }
 }
 
@@ -133,8 +133,8 @@ void right_switch_interrupt_handler(void){
 // left switch dir p1.1
 void left_switch_interrupt_handler(void){
     // write your code here
-    g_clockwise_pwm = 500;
-    g_anti_clockwise_pwm = 0;
+    g_anti_clockwise_pwm = 500;
+    g_clockwise_pwm = 0;
 }
 
 void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
@@ -185,11 +185,11 @@ void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아�
             break;
         case 11: // 11:star
             tmp1=11;
-            g_clockwise_pwm++;
+            g_anti_clockwise_pwm++;
             break;
         case 12: // 12:sharp
             tmp1=12;
-            g_anti_clockwise_pwm++;
+            g_clockwise_pwm++;
             break;
     }
 }
@@ -241,11 +241,11 @@ void keypad_release_handler(unsigned int key){ // 각 case 를 구현하지 않�
             break;
         case 11: // 11:star
             tmp2=11;
-            g_clockwise_pwm++;
+            g_anti_clockwise_pwm++;
             break;
         case 12: // 12:sharp
             tmp2=12;
-            g_anti_clockwise_pwm++;
+            g_clockwise_pwm++;
             break;
     }
 }
