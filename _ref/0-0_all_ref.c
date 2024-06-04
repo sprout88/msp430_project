@@ -6,7 +6,7 @@
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int screen_arr[4] = {0,};
 unsigned int adc_data = 3000;
-unsigned int cnt = 0;
+unsigned int dynamic_segment_cnt = 0;
 
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
@@ -107,10 +107,10 @@ void init_smclk(void){
 }
 
 void show_screen(unsigned int value){
-    if (cnt > 3)
-        cnt = 0; // count 순회
+    if (dynamic_segment_cnt > 3)
+        dynamic_segment_cnt = 0; // count 순회
 
-    switch (cnt)
+    switch (dynamic_segment_cnt)
     {
     case 0:
         P3OUT = digits[value%10];
@@ -132,10 +132,10 @@ void show_screen(unsigned int value){
 }
 
 void show_screen_arr(){
-    if (cnt > 3)
-            cnt = 0; // count 순회
+    if (dynamic_segment_cnt > 3)
+            dynamic_segment_cnt = 0; // count 순회
 
-    switch (cnt)
+    switch (dynamic_segment_cnt)
     {
     case 0:
         P3OUT = screen_arr[0];
@@ -217,7 +217,7 @@ void enable_interrupt_vector(void){
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
 {
-    cnt++;
+    dynamic_segment_cnt++;
     switch(screen_mode){
         case 0:
             show_screen_arr();
