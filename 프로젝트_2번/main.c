@@ -27,6 +27,7 @@ unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
+char p4_7_left_led_on = 0; // led and screen error fix
 
 unsigned int g_anti_clockwise_pwm = 0;
 unsigned int g_clockwise_pwm = 0;
@@ -34,9 +35,11 @@ unsigned int g_clockwise_pwm = 0;
 /* motor locks */
 unsigned int g_motor_clockwise_spin_start = 0;
 unsigned int g_motor_anti_clockwise_spin_start = 0;
-int g_motor_spin_direction = 0; // -1:anti-clockwise, 0:stop, 1:clock-wise
-char p4_7_left_led_on = 0; // led and screen error fix
+
 int g_motor_signal = 0; // 0:(신호없음), 1:on명령, -1:off명령
+int g_motor_spin_direction_signal = 0; // -1:anti-clockwise, 0:stop, 1:clock-wise
+
+int g_motor_toggle = 0; // 0:off, 1:on
 
 /* watchdog timer functions */
 void stop_watchdog_timer(void);
@@ -68,7 +71,7 @@ void keypad_release_handler(unsigned int key);
 /* motor and encoder functions */
 void init_motor(void);
 void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn);\
-void motor_speed_controller_7(char clockwise, unsigned int* p_cnt_7); // set_motor_spin_pwm 과 같이 사용해야함
+void motor_speed_controller_7(int clockwise, unsigned int* p_cnt_7); // set_motor_spin_pwm 과 같이 사용해야함
 
 /* ADC functions */
 void init_ADC_single_mode(void);
@@ -113,7 +116,7 @@ void main(void) {
         show_screen_arr(); // show adc_data
         keypad_input_polling_checker();
         set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
-        motor_speed_controller_7(g_motor_spin_direction, &motor_cnt_7); // set_motor_spin_pwm 과 같이 사용해야함
+        motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7); // set_motor_spin_pwm 과 같이 사용해야함
     }
 }
 
@@ -190,20 +193,36 @@ void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아�
             break;
         case 11: // 11:star
             tmp1=11;
-            if(g_motor_signal==0){ // 모터가 꺼져있을때, 버튼 누름
-                g_motor_spin_direction = -1; // anti-clockwise
-                g_motor_signal=1; // motor on
+            if(g_motor_toggle==0){
+                g_motor_toggle=1; // motor toggle UP
+
+                // message passing
+                g_motor_spin_direction_signal = -1; // anti-clockwise
+                g_motor_signal=1; // motor on signal
+
             }else{ // 모터가 돌아가고 있을때 버튼 누르면 모터 정지 명령
-                g_motor_signal=-1;
+                g_motor_toggle=0; // motor toggle DOWN
+
+                // mesasage passing
+                g_motor_spin_direction_signal = 0; // direction none signal
+                g_motor_signal=-1; // motor off signal
             }
             break;
         case 12: // 12:sharp
             tmp1=12;
-            if(g_motor_signal==0){ // 모터가 꺼져있을때, 버튼 누름
-                g_motor_spin_direction = 1; // clockwise
-                g_motor_signal=1; // motor on
+            if(g_motor_toggle==0){
+                g_motor_toggle=1; // motor toggle UP
+
+                // message passing
+                g_motor_spin_direction_signal = 1; // clockwise
+                g_motor_signal=1; // motor on signal
+
             }else{ // 모터가 돌아가고 있을때 버튼 누르면 모터 정지 명령
-                g_motor_signal=-1;
+                g_motor_toggle=0; // motor toggle DOWN
+
+                // mesasage passing
+                g_motor_spin_direction_signal = 0; // direction none signal
+                g_motor_signal=-1; // motor off signal
             }
             break;
     }
@@ -644,46 +663,50 @@ void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_
     TA2CCR2 = clockwise_pwm;
     TA2CCR1 = anti_clockwise_pwn;
 }
-void motor_speed_controller_7(char clockwise, unsigned int* p_cnt_7){ // set_motor_spin_pwm 과 같이 사용해야함
+void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7){ // set_motor_spin_pwm 과 같이 사용해야함
     unsigned int interpolated_pwm = 0;
 
     if(g_motor_signal==1) // 모터 가동 신호를 받으면 모터를 작동시킴
     {
         if(motor_cnt_7_lock==0)
             motor_cnt_7_lock=1; // 카운터락 해제, 7초 세기 시작
-            
-        while(*p_cnt_7<7000){ // 모터 7초 동안 속력 서서히 증가
+
+        if(*p_cnt_7<7000){ // 모터 7초 동안 속력 서서히 증가
             interpolated_pwm = *p_cnt_7/10 + 300; // 선형보간으로 계산, 0sec->300pwm,7000sec->1000pwm
-            if(clockwise)
+            if(dir_signal_recved)
                 g_clockwise_pwm = interpolated_pwm;
             else
                 g_anti_clockwise_pwm = interpolated_pwm;
+            }else{
+                //7초 종료 후에는 최고속 유지
+                *p_cnt_7=0; // 7초 카운터 초기화
+                motor_cnt_7_lock=0; // 7초 카운터 잠금
+                g_motor_signal = 0; // signal 초기화
             }
-            //7초 종료 후에는 최고속 유지
-            *p_cnt_7=0; // 7초 카운터 초기화
-            motor_cnt_7_lock=0; // 7초 카운터 잠금
-             // 모터 정지 신호를 받으면 모터를 정지시킴
-    }else if(g_motor_signal==-1)
+    }else if(g_motor_signal==-1) // 모터 정지 신호를 받으면 모터를 정지시킴
     {
         if(motor_cnt_7_lock==0)
             motor_cnt_7_lock=1; // 7초 세기 시작
 
-        while(*p_cnt_7<7000){ // 7초 동안 속력 서서히 감소
+        if(*p_cnt_7<7000){ // 7초 동안 속력 서서히 감소
             interpolated_pwm = *p_cnt_7/10 + 300;
-            if(clockwise) // 방향에 따라 다르게 작동
+            if(dir_signal_recved) // 방향에 따라 다르게 작동
                 g_clockwise_pwm = interpolated_pwm;
             else
                 g_anti_clockwise_pwm = interpolated_pwm;
-        }
-        // 7초 뒤에는 정지
-        *p_cnt_7=0; // 7초 카운터 초기화
-        motor_cnt_7_lock=0; // 7초 카운터 잠금
+        }else{
+            // 7초 뒤
+            *p_cnt_7=0; // 7초 카운터 초기화
+            motor_cnt_7_lock=0; // 7초 카운터 잠금
 
-        g_clockwise_pwm = 0;
-        g_anti_clockwise_pwm = 0;
-        // 상태를 정지로 바꿈.
-        g_motor_spin_direction = 0;
-        g_motor_signal = 0;
+            /* 두 모터 정지 */
+            g_clockwise_pwm = 0;
+            g_anti_clockwise_pwm = 0;
+
+            // 상태를 정지로 바꿈.
+            g_motor_signal = 0; // signal 초기화
+        }
+
     }
 }
 // Timer interrupt service routine
