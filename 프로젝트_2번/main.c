@@ -192,7 +192,7 @@ void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아�
             // input your handler
             break;
         case 11: // 11:star
-            tmp1=11;
+            tmp1+=1;
             if(g_motor_toggle==0){
                 g_motor_toggle=1; // motor toggle UP
 
