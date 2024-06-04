@@ -10,7 +10,8 @@ unsigned int special_digits[] = {
 unsigned int screen_arr[4] = {0xdb,0xdb,0xdb,0xdb};
 unsigned int adc_data = 3000;
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
-unsigned int smclk_cnt = 0 // iterate 0~?
+unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
+unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
 unsigned int tmp1 = 0;
 
 unsigned int is_left_switch = 0;
@@ -65,7 +66,7 @@ void main(void) {
     enable_interrupt_vector();
 
     while(1){
-        
+        screen_arr[3] = digits[sec_cnt];
     }
 }
 
@@ -95,8 +96,8 @@ void adc_to_segment(void){
     if(scaled_adc_data != 1111){
         unsigned int units = scaled_adc_data/10%10; // ??N.???
         unsigned int tenths_place_num = scaled_adc_data%10; // ???.N??
-        screen_arr[3] = digits[0]; // far left 
-        screen_arr[2] = digits[units]; // mid left 
+        screen_arr[3] = digits[0]; // far left
+        screen_arr[2] = digits[units]; // mid left
         screen_arr[1] = special_digits[0]; // mid right
         screen_arr[0] = digits[tenths_place_num]; // far right
     }
@@ -135,7 +136,7 @@ void init_7_segment(void){
 void init_smclk(void){
     /* Timer - Timer0 */
     TA0CCTL0 = CCIE;
-    TA0CCR0 = 5000; //1000;
+    TA0CCR0 = 1000; //1000;
     TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
     /* END Timer - Timer0 */
 }
@@ -247,12 +248,16 @@ void enable_interrupt_vector(void){
 }
 
 // Timer interrupt service routine
-// 7 Segment Dynamic 구동 타이머
+// 1ms 마다 호출됨
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
 {
-    dynamic_segment_cnt++;
-    smclk_cnt++;
+    dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
+    smclk_cnt++; // 1++ per 1ms
+    if(smclk_cnt>1000){
+        sec_cnt++;
+        smclk_cnt=0;
+    }
     switch(screen_mode){
         case 0:
             show_screen_arr();
