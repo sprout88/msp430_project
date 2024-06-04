@@ -13,6 +13,8 @@ void init_right_switch(void);
 void init_left_switch(void);
 void right_switch_interrupt_handler(void);
 void left_switch_interrupt_handler(void);
+void change_temp(void);
+
 
 /* interrupt functions */
 void enable_interrupt_vector(void);
@@ -24,8 +26,8 @@ void enable_interrupt_vector(void);
 
 // ### Main ###
 void main(void) {
-    init_right_switch();
-    init_left_switch();
+    
+    change_temp();
     enable_interrupt_vector();
 
     while(1){
@@ -33,6 +35,9 @@ void main(void) {
     }
 }
 
+void change_temp(void){
+    temp=882;
+}
 
 // ### override functions
 
