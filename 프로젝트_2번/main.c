@@ -27,6 +27,11 @@ void init_left_switch(void);
 void right_switch_interrupt_handler(void);
 void left_switch_interrupt_handler(void);
 
+/* led functions */
+void init_led(int led_num);
+void turn_on_led(int led_num);
+void turn_off_led(int led_num);
+
 /* 7 segment functions */
 void init_7_segment(void);
 void init_smclk(void);
@@ -62,6 +67,9 @@ void main(void) {
     init_right_switch();
     init_left_switch();
     init_ADC_single_mode();
+
+    init_led(1);
+    init_led(2);
 
     enable_interrupt_vector();
 
@@ -247,6 +255,49 @@ void enable_interrupt_vector(void){
     __bis_SR_register(GIE);
 }
 
+void toggle_led(void){
+    
+}
+
+void init_led(int led_num){
+    switch(led_num){
+        case 1:
+            // LED1 DIR : P1.1
+            P1DIR |= BIT0;
+            // LED1 OFF
+            P1OUT &= ~BIT0;
+            break;
+        case 2:
+            // LED2 DIR : P4.7
+            P4DIR |= BIT7;
+            // LED2 OFF
+            P4OUT &= ~BIT7; // LED2 OFF
+    }
+}
+
+void turn_on_led(int led_num){
+    switch(led_num){
+        case 1:
+            P1OUT |= BIT0; // LED1 ON
+            break;
+        case 2:
+            P4OUT |= BIT7; // LED2 ON
+            break;
+    }
+}
+void turn_off_led(int led_num){
+    switch(led_num){
+        case 1:
+            P1OUT &= ~BIT0; // LED1 OFF
+            break;
+        case 2:
+            P4OUT &= ~BIT7; // LED2 OFF
+            break;
+    }
+}
+
+
+
 // Timer interrupt service routine
 // 1ms 마다 호출됨
 #pragma vector=TIMER0_A0_VECTOR
@@ -254,7 +305,7 @@ __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
     smclk_cnt++; // 1++ per 1ms
-    if(smclk_cnt>1000){
+    if(smclk_cnt>1000){ // 1초를 셈
         sec_cnt++;
         smclk_cnt=0;
     }
