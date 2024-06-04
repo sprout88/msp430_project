@@ -48,9 +48,9 @@ void show_screen_arr();
 /* ADC functions */
 void init_ADC_single_mode(void);
 void init_ADC_repeat_single_mode(void);
-void ADC_single_read(unsigned int* p_data);
+void ADC_single_read(unsigned int* p_data); // read adc hardware and save to global_var:adc_data
 void ADC_repeat_single_read(unsigned int* p_data);
-void scaled_adc_to_segment_arr(void);
+void adc_data_scale_and_save_to_segment_arr(void);
 
 /* interrupt functions */
 void enable_interrupt_vector(void);
@@ -92,7 +92,8 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
-    scaled_adc_to_segment_arr();
+    ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
+    adc_data_scale_and_save_to_segment_arr(); // convert adc_data to special scaled formet and save to segment_arr
     toggle_lock ^= 1;
 }
 
@@ -106,8 +107,7 @@ void left_switch_interrupt_handler(void){
 //
 // ### non-override functions
 
-void scaled_adc_to_segment_arr(void){
-    ADC_single_read(&adc_data);
+void adc_data_scale_and_save_to_segment_arr(void){
     scaled_adc_data = scale_transform(adc_data);
     if(scaled_adc_data != 1111){
         unsigned int units = scaled_adc_data/10%10; // ??N.???
