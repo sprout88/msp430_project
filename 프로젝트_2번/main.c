@@ -64,7 +64,8 @@ void keypad_release_handler(unsigned int key);
 
 /* motor and encoder functions */
 void init_motor(void);
-void set_motor_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn);
+void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn);\
+void set_motor_accel_fixed_time(char clockwise, unsigned int time_ms); // set_motor_spin_pwm 과 같이 사용해야함
 
 /* ADC functions */
 void init_ADC_single_mode(void);
@@ -108,7 +109,8 @@ void main(void) {
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
         keypad_input_polling_checker();
-        set_motor_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+        set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+        set_motor_accel_fixed_time(1, motor_cnt_7); // set_motor_spin_pwm 과 같이 사용해야함
     }
 }
 
@@ -613,6 +615,7 @@ void keypad_input_polling_checker(void){
     }
 }
 
+// motor functions
 void init_motor(void){
     // PWN set
     P2DIR |= (BIT5 | BIT4);
@@ -624,12 +627,20 @@ void init_motor(void){
     TA2CCR1 = 0;
     TA2CTL = TASSEL_2 + MC_1;
 }
-
-void set_motor_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn){
+void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn){
     TA2CCR2 = clockwise_pwm;
     TA2CCR1 = anti_clockwise_pwn;
 }
-
+void set_motor_accel_fixed_time(char clockwise, unsigned int time_ms){ // set_motor_spin_pwm 과 같이 사용해야함
+    int interpolated_pwm = 0; 
+    if(clockwise){
+        interpolated_pwm = time_ms/10 + 300; // 선형보간으로 계산, 0sec->300pwm,7000sec->1000pwm
+        if(clockwise)
+            g_clockwise_pwm = interpolated_pwm;
+        else
+            g_anti_clockwise_pwm = interpolated_pwm;
+    }
+}
 // Timer interrupt service routine
 // 1ms 마다 호출됨
 #pragma vector=TIMER0_A0_VECTOR
