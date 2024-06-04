@@ -13,7 +13,9 @@ unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
 unsigned int tmp1 = 0;
-
+unsigned int scaled_adc_data = 0;
+unsigned int runtime_ms = 0;
+unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
@@ -31,6 +33,7 @@ void left_switch_interrupt_handler(void);
 void init_led(int led_num);
 void turn_on_led(int led_num);
 void turn_off_led(int led_num);
+void toggle_led_per_time(unsigned int toggle_interval_ms);
 
 /* 7 segment functions */
 void init_7_segment(void);
@@ -75,6 +78,7 @@ void main(void) {
 
     while(1){
         screen_arr[3] = digits[sec_cnt];
+        toggle_led_per_time(3000); // TEST time
     }
 }
 
@@ -86,6 +90,9 @@ void main(void) {
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
     adc_to_segment();
+    led_toggle_operation_toggle();
+    
+    toggle_lock ^= 1;
 }
 
 // left switch dir p1.1
@@ -100,7 +107,7 @@ void left_switch_interrupt_handler(void){
 
 void adc_to_segment(void){
     ADC_single_read(&adc_data);
-    int scaled_adc_data = scale_transform(adc_data);
+    scaled_adc_data = scale_transform(adc_data);
     if(scaled_adc_data != 1111){
         unsigned int units = scaled_adc_data/10%10; // ??N.???
         unsigned int tenths_place_num = scaled_adc_data%10; // ???.N??
@@ -255,8 +262,13 @@ void enable_interrupt_vector(void){
     __bis_SR_register(GIE);
 }
 
-void toggle_led(void){
-    
+void toggle_led_per_time(unsigned int toggle_interval_ms){
+    if(toggle_lock=1){
+        // toggle two led per time
+        if(runtime_ms%toggle_interval_ms == 0){
+              // do something...
+        }
+    }
 }
 
 void init_led(int led_num){
@@ -295,7 +307,14 @@ void turn_off_led(int led_num){
             break;
     }
 }
-
+void toggle_led(int led_num){
+    switch(led_num){
+        case 1:
+            P1OUT ^= BIT0 // LED1 TOGGLE
+        case 2:
+            P4OUT ^= BIT7 // LED2 TOGGLE
+    }
+}
 
 
 // Timer interrupt service routine
@@ -304,7 +323,8 @@ void turn_off_led(int led_num){
 __interrupt void TIMER0_A0_ISR(void)
 {
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
-    smclk_cnt++; // 1++ per 1ms
+    smclk_cnt++; // 1++ per 1ms, iterate
+    runtime_ms++; // 1++ per 1ms, no iterate    
     if(smclk_cnt>1000){ // 1초를 셈
         sec_cnt++;
         smclk_cnt=0;
