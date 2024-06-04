@@ -18,7 +18,6 @@ unsigned int scaled_adc_data = 0;
 unsigned int ms_timer_1 = 0;
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
-unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
 
 /* locks */
 unsigned int toggle_lock = 0; // 0 : off, 1 : on
@@ -636,14 +635,12 @@ __interrupt void TIMER0_A0_ISR(void)
     /* overflow counters */
     // 0~65535 까지 증가하고 0으로 초기화됨
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
-    
     ms_timer_1++; // 1++ per 1ms, no iterate
 
     /* iterate counters */
     // 특정값까지 세고 0으로 돌아옴
     smclk_cnt++; // 1++ per 1ms, iterate
     if(smclk_cnt>1000){ // 1초를 셈 (1ms)
-        sec_cnt++;
         smclk_cnt=0;
     }
 }
