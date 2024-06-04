@@ -559,23 +559,20 @@ void keypad_input_polling_checker(void){
     }
     else if ((P6IN & BIT6) == 0) // Button 4
     {
-        while(((P6IN & BIT6) == 0)){
-            keypad_push_handler(4);
-        }
+        keypad_push_handler(4);
+        while(((P6IN & BIT6) == 0)){}
         keypad_release_handler(4);
     }
     else if ((P6IN & BIT5) == 0) // Button 7
     {
-        while(((P6IN & BIT5) == 0)){
-            keypad_push_handler(7);
-        }
+        keypad_push_handler(7);
+        while(((P6IN & BIT5) == 0)){}
         keypad_release_handler(7);
     }
     else if ((P6IN & BIT4) == 0) // Button *
     {
-        while(((P6IN & BIT4) == 0)){
-            keypad_push_handler(11);
-        }
+        keypad_push_handler(11);
+        while(((P6IN & BIT4) == 0)){}
         keypad_release_handler(11); //11:*
     }
 
@@ -592,23 +589,20 @@ void keypad_input_polling_checker(void){
     }
     else if ((P6IN & BIT6) == 0) // Button 5
     {
-        while(((P6IN & BIT6) == 0)){
-            keypad_push_handler(5);
-        }
+        keypad_push_handler(5);
+        while(((P6IN & BIT6) == 0)){}
         keypad_release_handler(5);
     }
     else if ((P6IN & BIT5) == 0) // Button 8
     {
-        while(((P6IN & BIT5) == 0)){
-            keypad_push_handler(8);
-        }
+        keypad_push_handler(8);
+        while(((P6IN & BIT5) == 0)){}
         keypad_release_handler(8);
     }
     else if ((P6IN & BIT4) == 0) // Button 0
     {
-        while(((P6IN & BIT4) == 0)){
-            keypad_push_handler(0);
-        }
+        keypad_push_handler(0);
+        while(((P6IN & BIT4) == 0)){}
         keypad_release_handler(0);
     }
 
@@ -625,23 +619,20 @@ void keypad_input_polling_checker(void){
     }
     else if ((P6IN & BIT6) == 0) // Button 6
     {
-        while(((P6IN & BIT6) == 0)){
-            keypad_push_handler(6);
-        }
+        keypad_push_handler(6);
+        while(((P6IN & BIT6) == 0)){}
         keypad_release_handler(6);
     }
     else if ((P6IN & BIT5) == 0) // Button 9
     {
-        while(((P6IN & BIT5) == 0)){
-            keypad_push_handler(9);
-        }
+        keypad_push_handler(9);
+        while(((P6IN & BIT5) == 0)){}
         keypad_release_handler(9);
     }
     else if ((P6IN & BIT4) == 0) // Button #
     {
-        while(((P6IN & BIT4) == 0)){
-            keypad_push_handler(12);
-        }
+        keypad_push_handler(12);
+        while(((P6IN & BIT4) == 0)){}
         keypad_release_handler(12); // 12:sharp
 
     }
