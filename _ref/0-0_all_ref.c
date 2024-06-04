@@ -24,7 +24,7 @@ void left_switch_interrupt_handler(void);
 /* 7 segment functions */
 void init_7_segment(void);
 void init_smclk(void);
-void show_screen(unsigned int);
+void show_screen_decimal(unsigned int);
 void show_screen_arr();
 
 
@@ -106,7 +106,7 @@ void init_smclk(void){
     /* END Timer - Timer0 */
 }
 
-void show_screen(unsigned int value){
+void show_screen_decimal(unsigned int value){
     if (dynamic_segment_cnt > 3)
         dynamic_segment_cnt = 0; // count 순회
 
@@ -223,7 +223,7 @@ __interrupt void TIMER0_A0_ISR(void)
             show_screen_arr();
             break;
         case 1:
-            show_screen(adc_data);
+            show_screen_decimal(adc_data);
             break;
     }
 }

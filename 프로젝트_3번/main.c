@@ -14,7 +14,7 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 
 void init(void);
 void keypad_controller(void);
-void show_screen(unsigned int);
+void show_screen_decimal(unsigned int);
 void reset_password_input(void);
 void stanby(void);
 
@@ -29,7 +29,7 @@ void main(void) {
     {
         data_value = data[3] * 1000 + data[2] * 100 + data[1] * 10 + data[0];
         keypad_controller();
-        //show_screen(data_value);
+        //show_screen_decimal(data_value);
     }
 }
 
@@ -179,7 +179,7 @@ void keypad_controller(void){
     /* END Keypad Controller*/
 }
 
-void show_screen(unsigned int value){
+void show_screen_decimal(unsigned int value){
 
     if (dynamic_segment_cnt > 3)
         dynamic_segment_cnt = 0; // count 순회
