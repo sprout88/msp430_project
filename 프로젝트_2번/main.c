@@ -15,7 +15,7 @@ unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
 /* timers */
-unsigned int ms_timer_1 = 0;
+unsigned int led_toggle_cnt = 0;
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 
@@ -434,7 +434,7 @@ void enable_interrupt_vector(void){
 void toggle_led_per_time_ms(unsigned int toggle_interval_ms){
     if(toggle_lock==1){
         // toggle two led per time
-        if(ms_timer_1 > toggle_interval_ms ){
+        if(led_toggle_cnt > toggle_interval_ms ){
             // toggle leds
             if(led_toggle_state){
                 turn_on_led(1);
@@ -445,7 +445,7 @@ void toggle_led_per_time_ms(unsigned int toggle_interval_ms){
                 turn_on_led(2);
                 led_toggle_state=1;
             }
-            ms_timer_1 = 0;
+            led_toggle_cnt = 0;
         }
     }
 }
@@ -635,7 +635,7 @@ __interrupt void TIMER0_A0_ISR(void)
     /* overflow counters */
     // 0~65535 까지 증가하고 0으로 초기화됨
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
-    ms_timer_1++; // 1++ per 1ms, no iterate
+    led_toggle_cnt++; // 1++ per 1ms, no iterate
 
     /* iterate counters */
     // 특정값까지 세고 0으로 돌아옴
