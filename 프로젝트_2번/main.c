@@ -7,7 +7,7 @@ unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf
 unsigned int special_digits[] = {
     0x20, /* dot */
 };
-unsigned int screen_arr[4] = {0xdb,0xdb,0xdb,0xdb};
+unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0x5d};
 unsigned int adc_data = 3000;
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
@@ -20,6 +20,9 @@ unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
+
+char left_led_on = 0;
+char right_led_on = 0;
 
 /* watchdog timer functions */
 void stop_watchdog_timer(void);
@@ -78,7 +81,8 @@ void main(void) {
     enable_interrupt_vector();
 
     while(1){
-        toggle_led_per_time(3000); // TEST time
+        show_screen_arr();
+        //toggle_led_per_time(3000); // TEST time
     }
 }
 
@@ -144,7 +148,7 @@ void init_7_segment(void){
     P3DIR |= 0xffff;
     P3OUT &= 0x0000;
     P4DIR |= 0x000f;
-    P4OUT &= ~BIT0;
+    P4OUT = 0x0F; // segment : XXXX
 }
 
 void init_smclk(void){
@@ -180,7 +184,7 @@ void show_screen(unsigned int value){
     }
 }
 
-void show_screen_arr(){
+void show_screen_arr(void){
     if (dynamic_segment_cnt > 3)
             dynamic_segment_cnt = 0; // count 순회
 
@@ -188,19 +192,19 @@ void show_screen_arr(){
     {
     case 0:
         P3OUT = screen_arr[0];
-        P4OUT = ~BIT0;
+        P4OUT = ~BIT0; // segment : XXXO
         break;
     case 1:
         P3OUT = screen_arr[1];
-        P4OUT = ~BIT1;
+        P4OUT = ~BIT1; // segment : XXOX
         break;
     case 2:
         P3OUT = screen_arr[2];
-        P4OUT = ~BIT2;
+        P4OUT = ~BIT2; // segment : XOXX
         break;
     case 3:
         P3OUT = screen_arr[3];
-        P4OUT = ~BIT3;
+        P4OUT = ~BIT3; // segment : OXXX
         break;
     }
 }

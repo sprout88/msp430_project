@@ -8,8 +8,7 @@ unsigned int dynamic_segment_cnt = 0;
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;
-
-
+    
     // digital 7 segment
     P3DIR |= 0xffff;
     P3OUT &= 0x0000;
@@ -20,21 +19,6 @@ void main(void){
 
     while(1)
     {
-        P3OUT = digits[1];
-        P4OUT = ~BIT0; // P4 : OFF OFF OFF ON
-        __delay_cycles(5000);
-
-        P3OUT = digits[2];
-        P4OUT = ~BIT1; // P4 : OFF OFF ON OFF
-        __delay_cycles(5000);
-
-        P3OUT = digits[3];
-        P4OUT = ~BIT2; // P4 : OFF ON OFF OFF
-        __delay_cycles(5000);
-
-        P3OUT = digits[4];
-        P4OUT = ~BIT3; // P4 : ON OFF OFF OFF
-        __delay_cycles(5000);
-
+        P3OUT = 0xdb;
     }
 }
