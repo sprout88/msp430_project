@@ -3,6 +3,9 @@
 #define ADC_MIN 1081
 #define ADC_MAX 4095
 
+unsigned int tmp1 = 0;
+unsigned int tmp2 = 0;
+
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
     0x20, /* dot */
@@ -14,7 +17,6 @@ unsigned int scaled_adc_data = 0;
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 unsigned int sec_cnt = 0; // iterate 1sec ~ 65535sec
-unsigned int tmp1 = 0;
 
 unsigned int ms_timer_1 = 0;
 unsigned int toggle_lock = 0; // 0 : off, 1 : on
@@ -48,7 +50,8 @@ void show_screen_arr(void);
 
 /* keypad functions */
 void init_keypad(void);
-void keypad_controller(void);
+void keypad_input_polling_checker(void);
+void keypad_handler(unsigned int key);
 
 
 /* ADC functions */
@@ -83,12 +86,14 @@ void main(void) {
     init_led(1);
     init_led(2);
 
+    init_keypad();
+
     enable_interrupt_vector();
 
     while(1){
-        tmp1 = scaled_adc_data*100;
-        toggle_led_per_time_ms(tmp1); // only if toggle_lock = true, scaled_adc_data(0~20)
+        toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
+        keypad_input_polling_checker();
     }
 }
 
@@ -101,7 +106,7 @@ void main(void) {
 void right_switch_interrupt_handler(void){
     ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
     adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
-    
+
     if(toggle_lock == 1){ // adc_scaled_sec 로 led를 이미 toggle 중이였다면 종료 후 모터 모드로 전환
 
     }
@@ -113,6 +118,51 @@ void right_switch_interrupt_handler(void){
 // left switch dir p1.1
 void left_switch_interrupt_handler(void){
     // write your code here
+}
+
+void keypad_handler(unsigned int key){
+    switch(key){
+        case 1:
+            tmp2 = 1;
+            // input your handler
+            break;
+        case 2:
+            tmp2 = 2;
+            // input your handler
+            break;
+        case 3:
+            tmp2 = 3;
+            // input your handler
+            break;
+        case 4:
+            // input your handler
+            break;
+        case 5:
+            // input your handler
+            break;
+        case 6:
+            // input your handler
+            break;
+        case 7:
+            // input your handler
+            break;
+        case 8:
+            // input your handler
+            break;
+        case 9:
+            // input your handler
+            break;
+        case 10:
+            // input your handler
+            break;
+        case 11: // 11:star
+            tmp2 = 11;
+            // input your handler
+            break;
+        case 12: // 12:sharp
+            // input your handler
+            break;
+    }
 }
 
 ///////////////////////////////////////
@@ -376,26 +426,27 @@ void init_keypad(void){
     P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
 }
 
-void keypad_controller(unsigned int* key, unsigned int* data){
+// keypad handler
+void keypad_input_polling_checker(void){
     // columns 1
     P2OUT &= ~BIT2;
     P2OUT |= (BIT0 | BIT3);
 
     if ((P6IN & BIT3) == 0) // Button 1
     {
-        key = 1;
+        keypad_handler(1);
     }
     else if ((P6IN & BIT6) == 0) // Button 4
     {
-        key = 4;
+        keypad_handler(4);
     }
     else if ((P6IN & BIT5) == 0) // Button 7
     {
-        key = 7;
+        keypad_handler(7);
     }
     else if ((P6IN & BIT4) == 0) // Button *
     {
-        key = 11; // star
+        keypad_handler(11); //11:*
     }
 
     // columns 2
@@ -404,19 +455,19 @@ void keypad_controller(unsigned int* key, unsigned int* data){
 
     if ((P6IN & BIT3) == 0) // Button 2
     {
-        key = 2;
+        keypad_handler(2);
     }
     else if ((P6IN & BIT6) == 0) // Button 5
     {
-        key = 5;
+        keypad_handler(5);
     }
     else if ((P6IN & BIT5) == 0) // Button 8
     {
-        key = 8;
+        keypad_handler(8);
     }
     else if ((P6IN & BIT4) == 0) // Button 0
     {
-        key = 0;
+        keypad_handler(0);
     }
 
     // columns 3
@@ -425,19 +476,19 @@ void keypad_controller(unsigned int* key, unsigned int* data){
 
     if ((P6IN & BIT3) == 0) // Button 3
     {
-        key = 3;
+        keypad_handler(3);
     }
     else if ((P6IN & BIT6) == 0) // Button 6
     {
-        key = 6;
+        keypad_handler(6);
     }
     else if ((P6IN & BIT5) == 0) // Button 9
     {
-        key = 9;
+        keypad_handler(9);
     }
     else if ((P6IN & BIT4) == 0) // Button #
     {
-        key = 12; // sharp
+       keypad_handler(12); // 12:sharp
     }
 }
 
