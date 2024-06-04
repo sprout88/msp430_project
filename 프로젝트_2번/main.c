@@ -53,6 +53,9 @@ void init_keypad(void);
 void keypad_input_polling_checker(void);
 void keypad_handler(unsigned int key);
 
+/* motor and encoder functions */
+void init_motor(void);
+void set_motor_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn);
 
 /* ADC functions */
 void init_ADC_single_mode(void);
@@ -88,12 +91,16 @@ void main(void) {
 
     init_keypad();
 
+    init_motor();
+
     enable_interrupt_vector();
 
     while(1){
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
         keypad_input_polling_checker();
+
+        set_motor_pwm(500,0); // 모터 테스트
     }
 }
 
@@ -486,6 +493,23 @@ void keypad_input_polling_checker(void){
     {
        keypad_handler(12); // 12:sharp
     }
+}
+
+void init_motor(void){
+    // PWN set
+    P2DIR |= (BIT5 | BIT4);
+    P2SEL |= (BIT5 | BIT4);
+    TA2CCR0 = 1000;
+    TA2CCTL2 = OUTMOD_6;
+    TA2CCR2 = 0;
+    TA2CCTL1 = OUTMOD_6;
+    TA2CCR1 = 0;
+    TA2CTL = TASSEL_2 + MC_1;
+}
+
+void set_motor_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn){
+    TA2CCR2 = clockwise_pwm;
+    TA2CCR1 = anti_clockwise_pwn;
 }
 
 // Timer interrupt service routine
