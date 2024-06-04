@@ -16,6 +16,7 @@ unsigned int scaled_adc_data = 0;
 
 /* timers */
 unsigned int led_toggle_cnt = 0;
+unsigned int motor_cnt_7 = 0; // 문제 2-3 에서 모터 7초 세기 카운터
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 
@@ -642,6 +643,10 @@ __interrupt void TIMER0_A0_ISR(void)
     smclk_cnt++; // 1++ per 1ms, iterate
     if(smclk_cnt>1000){ // 1초를 셈 (1ms)
         smclk_cnt=0;
+    }
+    motor_cnt_7++; // 1++ per 1ms, iterate
+    if(motor_cnt_7>7000){
+        motor_cnt_7=0;
     }
 }
 
