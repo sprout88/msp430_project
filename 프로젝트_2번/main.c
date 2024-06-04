@@ -97,7 +97,13 @@ void main(void) {
 void right_switch_interrupt_handler(void){
     ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
     adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
-    toggle_lock ^= 1;
+    
+    if(toggle_lock == 1){ // adc_scaled_sec 로 led를 이미 toggle 중이였다면 종료 후 모터 모드로 전환
+        
+    }
+
+    toggle_lock = 1;
+
 }
 
 // left switch dir p1.1
