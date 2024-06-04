@@ -51,10 +51,13 @@ unsigned int scale_transform(int input);
 
 // ### Main ###
 void main(void) {
+    stop_watchdog_timer();
+
     init_7_segment();
     init_right_switch();
     init_left_switch();
     init_ADC_single_mode();
+
     enable_interrupt_vector();
 
     while(1){
@@ -72,10 +75,12 @@ void right_switch_interrupt_handler(void){
     ADC_single_read(&adc_data);
     int scaled_adc_data = scale_transform(adc_data);
     if(scaled_adc_data != 1111){
-        screen_arr[3] = digits[0];
-        screen_arr[2] = digits[1];
-        screen_arr[1] = digits[2];
-        screen_arr[0] = digits[3];
+        unsigned int units = scaled_adc_data/10%10; // ??N.???
+        unsigned int tenths_place_num = scaled_adc_data%10; // ???.N??
+        screen_arr[3] = digits[0]; // far left 
+        screen_arr[2] = digits[units]; // mid left 
+        screen_arr[1] = special_digits[0]; // mid right
+        screen_arr[0] = digits[tenths_place_num]; // far right
     }
 }
 
