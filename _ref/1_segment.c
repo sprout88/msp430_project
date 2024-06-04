@@ -4,7 +4,7 @@ unsigned int digits[] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 
 
 int encoder_cnt = 0;
 
-unsigned int dynamic_segment_cnt = 0;
+unsigned int cnt = 0;
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;

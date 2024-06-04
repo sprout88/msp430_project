@@ -9,7 +9,7 @@ unsigned int special_digits[] = {
 };
 unsigned int screen_arr[4] = {0xdb,0xdb,0xdb,0xdb};
 unsigned int adc_data = 3000;
-unsigned int dynamic_segment_cnt = 0;
+unsigned int cnt = 0;
 unsigned int tmp1 = 0;
 
 unsigned int is_left_switch = 0;
@@ -27,7 +27,7 @@ void left_switch_interrupt_handler(void);
 
 /* 7 segment functions */
 void init_7_segment(void);
-void init_dynamic_timer(void);
+void init_smclk(void);
 void show_screen(unsigned int);
 void show_screen_arr();
 
@@ -53,6 +53,8 @@ unsigned int scale_transform(int input);
 // ### Main ###
 void main(void) {
     stop_watchdog_timer();
+
+    init_smclk();
 
     init_7_segment();
     init_right_switch();
@@ -127,11 +129,9 @@ void init_7_segment(void){
     P3OUT &= 0x0000;
     P4DIR |= 0x000f;
     P4OUT &= ~BIT0;
-    /* END 7 segment Digital Output */
-    init_dynamic_timer();
 }
 
-void init_dynamic_timer(void){
+void init_smclk(void){
     /* Timer - Timer0 */
     TA0CCTL0 = CCIE;
     TA0CCR0 = 5000; //1000;
@@ -140,10 +140,10 @@ void init_dynamic_timer(void){
 }
 
 void show_screen(unsigned int value){
-    if (dynamic_segment_cnt > 3)
-        dynamic_segment_cnt = 0; // count 순회
+    if (cnt > 3)
+        cnt = 0; // count 순회
 
-    switch (dynamic_segment_cnt)
+    switch (cnt)
     {
     case 0:
         P3OUT = digits[value%10];
@@ -165,10 +165,10 @@ void show_screen(unsigned int value){
 }
 
 void show_screen_arr(){
-    if (dynamic_segment_cnt > 3)
-            dynamic_segment_cnt = 0; // count 순회
+    if (cnt > 3)
+            cnt = 0; // count 순회
 
-    switch (dynamic_segment_cnt)
+    switch (cnt)
     {
     case 0:
         P3OUT = screen_arr[0];
@@ -250,7 +250,7 @@ void enable_interrupt_vector(void){
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
 {
-    dynamic_segment_cnt++;
+    cnt++;
     switch(screen_mode){
         case 0:
             show_screen_arr();
