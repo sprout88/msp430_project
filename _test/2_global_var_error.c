@@ -3,6 +3,8 @@
 #define ADC_MIN 1081
 #define ADC_MAX 4095
 
+unsigned int temp = 4;
+
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
     0x20, /* dot */
@@ -69,14 +71,7 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
-    ADC_single_read(&adc_data);
-    int scaled_adc_data = scale_transform(adc_data);
-    if(scaled_adc_data != 1111){
-        screen_arr[3] = digits[0];
-        screen_arr[2] = digits[1];
-        screen_arr[1] = digits[2];
-        screen_arr[0] = digits[3];
-    }
+    temp = 0;
 }
 
 // left switch dir p1.1
