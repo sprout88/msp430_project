@@ -135,80 +135,112 @@ void left_switch_interrupt_handler(void){
 
 void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
     switch(key){
+        case 0:
+            tmp2=0;
+            // input your handler
+            break;
         case 1:
+            tmp1=1;
             // input your handler
             break;
         case 2:
+            tmp1=2;
             // input your handler
             break;
         case 3:
+            tmp1=3;
             // input your handler
             break;
         case 4:
+            tmp1=4;
             // input your handler
             break;
         case 5:
+            tmp1=5;
             // input your handler
             break;
         case 6:
+            tmp1=6;
             // input your handler
             break;
         case 7:
+            tmp1=7;
             // input your handler
             break;
         case 8:
+            tmp1=8;
             // input your handler
             break;
         case 9:
+            tmp1=9;
             // input your handler
             break;
         case 10:
+            tmp1=10;
             // input your handler
             break;
         case 11: // 11:star
+            tmp1=11;
             g_clockwise_pwm++;
             break;
         case 12: // 12:sharp
+            tmp1=12;
             g_anti_clockwise_pwm++;
             break;
     }
 }
 void keypad_release_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
     switch(key){
+        case 0:
+            tmp2=0;
+            // input your handler
+            break;
         case 1:
+            tmp2=1;
             // input your handler
             break;
         case 2:
+            tmp2=2;
             // input your handler
             break;
         case 3:
+            tmp2=3;
             // input your handler
             break;
         case 4:
+            tmp2=4;
             // input your handler
             break;
         case 5:
+            tmp2=5;
             // input your handler
             break;
         case 6:
+            tmp2=6;
             // input your handler
             break;
         case 7:
+            tmp2=7;
             // input your handler
             break;
         case 8:
+            tmp2=8;
             // input your handler
             break;
         case 9:
+            tmp2=9;
             // input your handler
             break;
         case 10:
+            tmp2=10;
             // input your handler
             break;
         case 11: // 11:star
+            tmp2=11;
             g_clockwise_pwm++;
             break;
         case 12: // 12:sharp
+            tmp2=12;
             g_anti_clockwise_pwm++;
             break;
     }
@@ -489,15 +521,24 @@ void keypad_input_polling_checker(void){
     }
     else if ((P6IN & BIT6) == 0) // Button 4
     {
-        keypad_push_handler(4);
+        while(((P6IN & BIT6) == 0)){
+            keypad_push_handler(4);
+        }
+        keypad_release_handler(4);
     }
     else if ((P6IN & BIT5) == 0) // Button 7
     {
-        keypad_push_handler(7);
+        while(((P6IN & BIT5) == 0)){
+            keypad_push_handler(7);
+        }
+        keypad_release_handler(7);
     }
     else if ((P6IN & BIT4) == 0) // Button *
     {
-        keypad_push_handler(11); //11:*
+        while(((P6IN & BIT4) == 0)){
+            keypad_push_handler(11);
+        }
+        keypad_release_handler(11); //11:*
     }
 
     // columns 2
@@ -506,19 +547,31 @@ void keypad_input_polling_checker(void){
 
     if ((P6IN & BIT3) == 0) // Button 2
     {
-        keypad_push_handler(2);
+        while(((P6IN & BIT3) == 0)){
+            keypad_push_handler(2);
+        }
+        keypad_release_handler(2);
     }
     else if ((P6IN & BIT6) == 0) // Button 5
     {
-        keypad_push_handler(5);
+        while(((P6IN & BIT6) == 0)){
+            keypad_push_handler(5);
+        }
+        keypad_release_handler(5);
     }
     else if ((P6IN & BIT5) == 0) // Button 8
     {
-        keypad_push_handler(8);
+        while(((P6IN & BIT5) == 0)){
+            keypad_push_handler(8);
+        }
+        keypad_release_handler(8);
     }
     else if ((P6IN & BIT4) == 0) // Button 0
     {
-        keypad_push_handler(0);
+        while(((P6IN & BIT4) == 0)){
+            keypad_push_handler(0);
+        }
+        keypad_release_handler(0);
     }
 
     // columns 3
@@ -527,19 +580,32 @@ void keypad_input_polling_checker(void){
 
     if ((P6IN & BIT3) == 0) // Button 3
     {
-        keypad_push_handler(3);
+        while(((P6IN & BIT3) == 0)){
+            keypad_push_handler(3);
+        }
+        keypad_release_handler(3);
     }
     else if ((P6IN & BIT6) == 0) // Button 6
     {
-        keypad_push_handler(6);
+        while(((P6IN & BIT6) == 0)){
+            keypad_push_handler(6);
+        }
+        keypad_release_handler(6);
     }
     else if ((P6IN & BIT5) == 0) // Button 9
     {
-        keypad_push_handler(9);
+        while(((P6IN & BIT5) == 0)){
+            keypad_push_handler(9);
+        }
+        keypad_release_handler(9);
     }
     else if ((P6IN & BIT4) == 0) // Button #
     {
-       keypad_push_handler(12); // 12:sharp
+        while(((P6IN & BIT4) == 0)){
+            keypad_push_handler(12);
+        }
+        keypad_release_handler(12); // 12:sharp
+       
     }
 }
 
