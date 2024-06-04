@@ -19,6 +19,7 @@ unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
+unsigned int led_toggle_state = 0;
 
 /* watchdog timer functions */
 void stop_watchdog_timer(void);
@@ -77,7 +78,6 @@ void main(void) {
     enable_interrupt_vector();
 
     while(1){
-        screen_arr[3] = digits[sec_cnt];
         toggle_led_per_time(3000); // TEST time
     }
 }
@@ -262,11 +262,19 @@ void enable_interrupt_vector(void){
 }
 
 void toggle_led_per_time(unsigned int toggle_interval_ms){
-
     if(toggle_lock==1){
         // toggle two led per time
         if(ms_timer_1 > toggle_interval_ms ){
-              // toggle leds
+            // toggle leds
+            if(led_toggle_state){
+                turn_on_led(1);
+                turn_off_led(2);
+                led_toggle_state=0;
+            }else{
+                turn_off_led(1);
+                turn_on_led(2);
+                led_toggle_state=1;
+            }
             ms_timer_1 = 0;
         }
     }
