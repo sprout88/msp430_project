@@ -108,7 +108,7 @@ void main(void) {
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
         keypad_input_polling_checker();
-        set_motor_pwm(g_anti_clockwise_pwm,g_anti_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+        set_motor_pwm(g_clockwise_pwm,g_anti_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
     }
 }
 
@@ -133,6 +133,8 @@ void right_switch_interrupt_handler(void){
 // left switch dir p1.1
 void left_switch_interrupt_handler(void){
     // write your code here
+    g_clockwise_pwm = 500;
+    g_anti_clockwise_pwm = 0;
 }
 
 void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아도 오류 없음. (keypad_input_polling_checker에서 검증함)
@@ -607,7 +609,7 @@ void keypad_input_polling_checker(void){
             keypad_push_handler(12);
         }
         keypad_release_handler(12); // 12:sharp
-       
+
     }
 }
 
