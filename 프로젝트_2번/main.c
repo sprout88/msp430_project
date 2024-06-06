@@ -32,6 +32,7 @@ unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 char p4_7_left_led_on = 0; // led and screen error fix
+char keypad_pushed_lock = 0;
 
 
 /* function locks */
@@ -77,6 +78,7 @@ void init_keypad(void);
 void keypad_input_polling_checker_anticht_by_while(void);
 void keypad_push_handler(unsigned int key);
 void keypad_release_handler(unsigned int key);
+void keypad_input_polling_checker_anticht_by_lock(void);
 
 /* motor and encoder functions */
 void init_motor(void);
@@ -125,10 +127,13 @@ void main(void) {
     while(1){
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
-        keypad_input_polling_checker_anticht_by_while();
+
+        keypad_input_polling_checker_anticht_by_lock();
+
         set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
         motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7, &g_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
+
     }
 }
 
@@ -645,7 +650,20 @@ void keypad_input_polling_checker_anticht_by_while(void){ // 꾸욱 누르는 �
 
     }
 }
+void keypad_input_polling_checker_anticht_by_lock(void){ // 꾸욱 누르면 keypad_pushed_lock이 0일때만 keypad_push_handler 를 호출하고 keypad_pushed_lock = 1 로 바뀜. 떼면 0 으로 바뀌면서 release_handler 호출
+    // columns 1
+    P2OUT &= ~BIT2;
+    P2OUT |= (BIT0 | BIT3);
 
+    if ((P6IN & BIT3) == 0 && keypad_pushed_lock==0){ // 키패드가 눌리지 않은 상태에서 눌림 감지
+        keypad_push_handler(1);
+        keypad_pushed_lock = 1; // 눌림락. 중복 인식을 방지
+    }else if((P6IN & BIT3) != 0 && keypad_pushed_lock == 1){ // 눌림락 상태에서 눌림 없음 감지(뗌)
+        keypad_release_handler(1);
+        keypad_pushed_lock = 0; // 눌림락 해제. 다시 누르기 가능
+    }
+
+}
 // motor functions
 void init_motor(void){
     // PWN set
