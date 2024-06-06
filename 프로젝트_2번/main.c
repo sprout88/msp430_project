@@ -85,6 +85,7 @@ void keypad_input_polling_checker_anticht_by_lock(char* p_pushed_lock_arr);
 void init_motor(void);
 void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn);
 void motor_speed_controller_7(int clockwise, unsigned int* p_cnt_7, int* p_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
+void keypad_push_motor_handler(char* p_keypad_push_lock_arr);
 
 /* ADC functions */
 void init_ADC_single_mode(void);
@@ -131,8 +132,10 @@ void main(void) {
 
         keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr);
 
-        set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
-        motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7, &g_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
+        set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm);// 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+
+        keypad_push_motor_handler(keypad_pushed_lock_arr); // set_motor_spin_pwm 과 함께 사용
+
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
 
     }
@@ -221,9 +224,6 @@ void keypad_push_handler(unsigned int key){ // 각 case 를 구현하지 않아�
             break;
         case 11: // 11:star
             tmp1+=1;
-            // message passing
-            g_motor_spin_direction_signal = -1; // anti-clockwise
-            g_motor_signal=1; // motor on signal
             break;
         case 12: // 12:sharp
             tmp1=12;
@@ -278,9 +278,6 @@ void keypad_release_handler(unsigned int key){ // 각 case 를 구현하지 않�
             break;
         case 11: // 11:star
             tmp2=11;
-            // mesasage passing
-            g_motor_spin_direction_signal = 0; // direction none signal
-            g_motor_signal = -1; // motor off signal
             break;
         case 12: // 12:sharp
             break;
@@ -776,7 +773,10 @@ void init_motor(void){
 void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn){
     TA2CCR2 = clockwise_pwm;
     TA2CCR1 = anti_clockwise_pwn;
+
+
 }
+
 void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* p_motor_signal){ // set_motor_spin_pwm 과 같이 사용해야함
     unsigned int interpolated_pwm = 0;
 
@@ -823,6 +823,21 @@ void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* 
 
     }
 }
+void keypad_push_motor_handler(char* p_keypad_push_lock_arr){
+    switch(p_keypad_push_lock_arr[11]){
+        case 0:
+            //
+            break;
+        case 1:
+            g_clockwise_pwm++;
+            break;
+    }
+    switch(p_keypad_push_lock_arr[12]){
+        case 1:
+            g_anti_clockwise_pwm--;
+    }
+}
+
 // Timer interrupt service routine
 // 1ms 마다 호출됨
 #pragma vector=TIMER0_A0_VECTOR
