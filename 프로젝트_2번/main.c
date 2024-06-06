@@ -47,6 +47,7 @@ unsigned int g_clockwise_pwm = 0;
 /* motor locks */
 unsigned int g_motor_clockwise_spin_start = 0;
 unsigned int g_motor_anti_clockwise_spin_start = 0;
+int g_total_pwm = 0;
 
 int g_motor_signal = 0; // 0:(신호없음), 1:on명령, -1:off명령
 int g_motor_spin_direction_signal = 0; // -1:anti-clockwise, 0:stop, 1:clock-wise
@@ -86,6 +87,7 @@ void init_motor(void);
 void set_motor_spin_pwm(unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwm);
 void motor_speed_controller_7(int clockwise, unsigned int* p_cnt_7, int* p_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
 void keypad_push_motor_handler(char* p_keypad_push_lock_arr);
+void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwm);
 
 /* ADC functions */
 void init_ADC_single_mode(void);
@@ -132,7 +134,7 @@ void main(void) {
 
         keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr);
 
-        set_motor_spin_pwm(&g_clockwise_pwm,&g_anti_clockwise_pwm);// 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+        set_motor_spin_pwm_single(&g_total_pwm, &g_clockwise_pwm, &g_anti_clockwise_pwm);
 
         keypad_push_motor_handler(keypad_pushed_lock_arr); // set_motor_spin_pwm 과 함께 사용
 
@@ -795,7 +797,7 @@ void set_motor_spin_pwm(unsigned int* p_clockwise_pwm, unsigned int* p_anti_cloc
 
 }
 
-void set_motor_spin_pwm_single(int* p_total_pwm, int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwm){
+void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwm){
     unsigned int clockwise_pwm = *p_clockwise_pwm;
     unsigned int anti_clockwise_pwm = *p_anti_clockwise_pwm;
 
@@ -808,17 +810,24 @@ void set_motor_spin_pwm_single(int* p_total_pwm, int* p_clockwise_pwm, unsigned 
     }
 
     if(anti_clockwise_pwm>0 && anti_clockwise_pwm<=300){
-        *p_clockwise_pwm = 300;
+        *p_anti_clockwise_pwm = 300;
     }
-    if(anti_clockwise_pwn>1000){
-        *p_clockwise_pwm = 1000;
+    if(anti_clockwise_pwm>1000){
+        *p_anti_clockwise_pwm = 1000;
     }
 
     *p_total_pwm = clockwise_pwm+anti_clockwise_pwm;
 
-    TA2CCR2 = clockwise_pwm;
-    TA2CCR1 = anti_clockwise_pwm;
-
+    if(clockwise_pwm>anti_clockwise_pwm){
+        TA2CCR2 = clockwise_pwm - anti_clockwise_pwm;
+        TA2CCR1 = 0;
+    }else if(clockwise_pwm<anti_clockwise_pwm){
+        TA2CCR2 = 0;
+        TA2CCR1 = anti_clockwise_pwm - clockwise_pwm;
+    }else if(clockwise_pwm==anti_clockwise_pwm){
+        TA2CCR2 = 0;
+        TA2CCR1 = 0;
+    }
 }
 
 void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* p_motor_signal){ // set_motor_spin_pwm 과 같이 사용해야함
@@ -869,9 +878,6 @@ void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* 
 }
 void keypad_push_motor_handler(char* p_keypad_push_lock_arr){
     switch(p_keypad_push_lock_arr[11]){
-        case 0:
-            //
-            break;
         case 1:
             g_clockwise_pwm++;
             break;
@@ -879,6 +885,7 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr){
     switch(p_keypad_push_lock_arr[12]){
         case 1:
             g_anti_clockwise_pwm--;
+            break;
     }
 }
 
