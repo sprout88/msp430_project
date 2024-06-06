@@ -36,6 +36,7 @@ char p4_7_left_led_on = 0; // led and screen error fix
 
 /* function locks */
 unsigned int toggle_led_per_time_ms_lock = 0;
+char adc_single_read_to_segment_lock = 0; // locked:0 unlocked:1
 
 /* states */
 unsigned int g_anti_clockwise_pwm = 0;
@@ -88,6 +89,7 @@ void init_ADC_repeat_single_mode(void);
 void ADC_single_read(unsigned int* p_data); // read adc hardware and save to global_var:adc_data
 void ADC_repeat_single_read(unsigned int* p_data);
 void adc_data_scale_and_save_to_segment_arr(unsigned int* p_adc_data, unsigned int* p_screen_arr);
+void adc_single_read_to_segment(void);
 
 /* interrupt functions */
 void enable_interrupt_vector(void);
@@ -126,6 +128,7 @@ void main(void) {
         keypad_input_polling_checker();
         set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
         motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7); // set_motor_spin_pwm 과 같이 사용해야함
+        adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
     }
 }
 
@@ -136,18 +139,17 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
+    p2_1_switch_clicked_cnt++;
     switch(p2_1_switch_clicked_cnt){
         case 1:
-            ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
-            adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
+            adc_single_read_to_segment_lock = 1; // unlock
             break;
         case 2:
+            adc_single_read_to_segment_lock = 1; // lock previous actions
             toggle_led_per_time_ms_lock = 1; // unlock toggle_led_per_ms mode
             break;
 
     }
-    p2_1_switch_clicked_cnt++;
-
 
     if(toggle_lock == 1){ // adc_scaled_sec 로 led를 이미 toggle 중이였다면 종료 후 모터 모드로 전환
 
@@ -156,6 +158,7 @@ void right_switch_interrupt_handler(void){
     toggle_lock = 1;
 
 }
+
 
 // left switch dir p1.1
 void left_switch_interrupt_handler(void){
@@ -306,7 +309,12 @@ void keypad_release_handler(unsigned int key){ // 각 case 를 구현하지 않�
 
 //
 // ### non-override functions
-
+void adc_single_read_to_segment(){
+    if(adc_single_read_to_segment_lock == 1){
+        ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
+        adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
+    }
+}
 void adc_data_scale_and_save_to_segment_arr(unsigned int* p_adc_data, unsigned int* p_screen_arr){
     scaled_adc_data = scale_transform(*p_adc_data);
     if(scaled_adc_data != 1111){
