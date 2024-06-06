@@ -816,18 +816,44 @@ void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, 
         *p_anti_clockwise_pwm = 1000;
     }
 
-    *p_total_pwm = clockwise_pwm+anti_clockwise_pwm;
-
+    // p_total_pwm 연산
     if(clockwise_pwm>anti_clockwise_pwm){
-        TA2CCR2 = clockwise_pwm - anti_clockwise_pwm;
-        TA2CCR1 = 0;
+        *p_total_pwm = clockwise_pwm - anti_clockwise_pwm;
     }else if(clockwise_pwm<anti_clockwise_pwm){
-        TA2CCR2 = 0;
-        TA2CCR1 = anti_clockwise_pwm - clockwise_pwm;
+        *p_total_pwm = clockwise_pwm - anti_clockwise_pwm;
     }else if(clockwise_pwm==anti_clockwise_pwm){
+        *p_total_pwm = 0;
+        
+    }
+
+    /* total pwm overflow 방지 */
+    if(*p_total_pwm>0 &&  *p_total_pwm<300){
+         *p_total_pwm = 300;
+    }
+    if(*p_total_pwm>1000){
+         *p_total_pwm = 1000;
+    }
+    if(*p_total_pwm<0 &&  *p_total_pwm>-300){
+         *p_total_pwm = -300;
+    }
+    if(*p_total_pwm<-1000){
+         *p_total_pwm = -1000;
+    }
+
+    /* 실제 모터 회전 */
+    if(*p_total_pwm>0){
+        TA2CCR2 = *p_total_pwm;
+        TA2CCR1 = 0;
+    }else if(*p_total_pwm<0){
+        TA2CCR2 = 0;
+        TA2CCR1 = -(*p_total_pwm);
+    }else if(*p_total_pwm==0){
         TA2CCR2 = 0;
         TA2CCR1 = 0;
     }
+
+
+    
 }
 
 void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* p_motor_signal){ // set_motor_spin_pwm 과 같이 사용해야함
@@ -884,7 +910,7 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr){
     }
     switch(p_keypad_push_lock_arr[12]){
         case 1:
-            g_anti_clockwise_pwm--;
+            g_anti_clockwise_pwm++;
             break;
     }
 }
