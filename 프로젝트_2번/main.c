@@ -22,6 +22,7 @@ char motor_cnt_7_lock = 0; // counter lock, enable(1) 일때만 카운트. lock(
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 
+
 /* switch locks */
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
@@ -86,7 +87,7 @@ void keypad_input_polling_checker_anticht_by_lock(char* p_pushed_lock_arr);
 void init_motor(void);
 void set_motor_spin_pwm(unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwm);
 void motor_speed_controller_7(int clockwise, unsigned int* p_cnt_7, int* p_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
-void keypad_push_motor_handler(char* p_keypad_push_lock_arr);
+void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_clockwise_pwm,unsigned int* p_anti_clockwise_pwm);
 void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwm);
 
 /* ADC functions */
@@ -136,7 +137,7 @@ void main(void) {
 
         set_motor_spin_pwm_single(&g_total_pwm, &g_clockwise_pwm, &g_anti_clockwise_pwm);
 
-        keypad_push_motor_handler(keypad_pushed_lock_arr); // set_motor_spin_pwm 과 함께 사용
+        keypad_push_motor_handler(keypad_pushed_lock_arr, &g_clockwise_pwm, &g_anti_clockwise_pwm); // set_motor_spin_pwm 과 함께 사용
 
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
 
@@ -801,21 +802,6 @@ void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, 
     unsigned int clockwise_pwm = *p_clockwise_pwm;
     unsigned int anti_clockwise_pwm = *p_anti_clockwise_pwm;
 
-    /* 모터 pwm 이 overflow 되는 것을 방지 */
-    if(clockwise_pwm>0 && clockwise_pwm<=300){
-        *p_clockwise_pwm = 300;
-    }
-    if(clockwise_pwm>1000){
-        *p_clockwise_pwm = 1000;
-    }
-
-    if(anti_clockwise_pwm>0 && anti_clockwise_pwm<=300){
-        *p_anti_clockwise_pwm = 300;
-    }
-    if(anti_clockwise_pwm>1000){
-        *p_anti_clockwise_pwm = 1000;
-    }
-
     // p_total_pwm 연산
     if(clockwise_pwm>anti_clockwise_pwm){
         *p_total_pwm = clockwise_pwm - anti_clockwise_pwm;
@@ -823,21 +809,6 @@ void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, 
         *p_total_pwm = clockwise_pwm - anti_clockwise_pwm;
     }else if(clockwise_pwm==anti_clockwise_pwm){
         *p_total_pwm = 0;
-        
-    }
-
-    /* total pwm overflow 방지 */
-    if(*p_total_pwm>0 &&  *p_total_pwm<300){
-         *p_total_pwm = 300;
-    }
-    if(*p_total_pwm>1000){
-         *p_total_pwm = 1000;
-    }
-    if(*p_total_pwm<0 &&  *p_total_pwm>-300){
-         *p_total_pwm = -300;
-    }
-    if(*p_total_pwm<-1000){
-         *p_total_pwm = -1000;
     }
 
     /* 실제 모터 회전 */
@@ -853,7 +824,6 @@ void set_motor_spin_pwm_single(int* p_total_pwm, unsigned int* p_clockwise_pwm, 
     }
 
 
-    
 }
 
 void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* p_motor_signal){ // set_motor_spin_pwm 과 같이 사용해야함
@@ -902,15 +872,40 @@ void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* 
 
     }
 }
-void keypad_push_motor_handler(char* p_keypad_push_lock_arr){
+void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_clockwise_pwm,unsigned int* p_anti_clockwise_pwm){
+
     switch(p_keypad_push_lock_arr[11]){
         case 1:
-            g_clockwise_pwm++;
+            if(*p_clockwise_pwm<1000)
+                (*p_clockwise_pwm)++;
+            else if(*p_clockwise_pwm>=1000 && *p_anti_clockwise_pwm != 0){ // 1000 보다 커지면 반대쪽 pwm 감소
+                *p_clockwise_pwm = 1000;
+                (*p_anti_clockwise_pwm)--;
+            }
+
+            if(*p_clockwise_pwm<300){
+                *p_clockwise_pwm = 300; // 초기구간 건너뛰기
+            }
+            if(*p_anti_clockwise_pwm<300){
+                *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
+            }
+
             break;
     }
     switch(p_keypad_push_lock_arr[12]){
         case 1:
-            g_anti_clockwise_pwm++;
+            if(*p_anti_clockwise_pwm<1000)
+                (*p_anti_clockwise_pwm)++;
+            else if(*p_anti_clockwise_pwm>=1000 && *p_clockwise_pwm != 0){  // 1000 보다 커지면 반대쪽 pwm 감소
+                *p_anti_clockwise_pwm = 1000;
+                (*p_clockwise_pwm)--;
+            }
+            if(*p_anti_clockwise_pwm<300){
+                *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
+            }
+            if(*p_clockwise_pwm<300){
+                *p_clockwise_pwm = 300; // 초기구간 건너뛰기
+            }
             break;
     }
 }
