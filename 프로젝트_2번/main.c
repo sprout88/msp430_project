@@ -29,7 +29,7 @@ unsigned int g_ultrasonic_flag = 0;
 
 
 /* project phase */
-unsigned int proj_2_phase = 4;
+unsigned int proj_2_phase = 0;
 
 /* timers */
 unsigned int led_toggle_cnt = 0;
@@ -168,7 +168,6 @@ void main(void) {
         if(proj_2_phase==3){ // 모터 증감속은 2-3 에서만 작동함
             keypad_push_motor_handler(keypad_pushed_lock_arr, &g_clockwise_pwm, &g_anti_clockwise_pwm); // set_motor_spin_pwm 과 함께 사용
         }
-        show_screen(g_ultrasonic_data);
         if(proj_2_phase==4){
             ultrasonic_distance_check(&g_ultrasonic_data, &g_ultrasonic_flag);
         }
@@ -988,7 +987,7 @@ __interrupt void TIMER0_A0_ISR(void)
 {
     /* overflow counters */
     // 0~65535 까지 증가하고 0으로 초기화됨
-    
+
     led_toggle_cnt++; // 1++ per 1ms, no iterate
 
     /* iterate counters */
