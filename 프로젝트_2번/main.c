@@ -171,7 +171,6 @@ void main(void) {
         show_screen(g_ultrasonic_data);
         if(proj_2_phase==4){
             ultrasonic_distance_check(&g_ultrasonic_data, &g_ultrasonic_flag);
-        
         }
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
 
@@ -967,7 +966,7 @@ void ultrasonic_distance_check(unsigned int* p_ultrasonic_data,unsigned int* p_u
 
     if(*p_ultrasonic_flag==0){
         P2OUT |= BIT7;  // Trig on
-        //__delay_cycles(10); // 10us
+        __delay_cycles(10); // 10us
         P2OUT &= ~BIT7; // Trig off
         *p_ultrasonic_flag = 1;
     }
