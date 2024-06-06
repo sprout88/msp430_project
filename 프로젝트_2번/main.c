@@ -121,6 +121,7 @@ void adc_single_read_to_segment(void);
 
 /* ultrasonic sensor functions */
 void init_ultrasonic(void);
+void ultrasonic_distance_check(unsigned int* p_ultrasonic_data,unsigned int* p_ultrasonic_flag);
 
 /* interrupt functions */
 void enable_interrupt_vector(void);
@@ -168,12 +169,8 @@ void main(void) {
         }
 
         if(proj_2_phase==4){
-            if(g_ultrasonic_flag==0){
-                P2OUT |= BIT7;  // Trig on
-                __delay_cycles(10); // 10us
-                P2OUT &= ~BIT7; // Trig off
-                g_ultrasonic_flag = 1;
-            }
+            ultrasonic_distance_check(&g_ultrasonic_data, &g_ultrasonic_flag);
+
         }
 
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
@@ -967,6 +964,15 @@ void init_ultrasonic(void){
     P1IES &= ~BIT4;  // Rising edge
     P1IES |= BIT4;   // Falling edge
     P1IFG &= ~BIT4;  // Clear interrupt flag
+}
+
+void ultrasonic_distance_check(unsigned int* p_ultrasonic_data,unsigned int* p_ultrasonic_flag){
+    if(*p_ultrasonic_flag==0){
+        P2OUT |= BIT7;  // Trig on
+        __delay_cycles(10); // 10us
+        P2OUT &= ~BIT7; // Trig off
+        *p_ultrasonic_flag = 1;
+    }
 }
 
 // Timer interrupt service routine
