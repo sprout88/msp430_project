@@ -63,6 +63,7 @@ char adc_single_read_to_segment_lock = 0; // locked:0 unlocked:1
 /* states */
 unsigned int g_anti_clockwise_pwm = 0;
 unsigned int g_clockwise_pwm = 0;
+unsigned int g_show_screen_on = 1;
 
 /* motor locks */
 unsigned int g_motor_clockwise_spin_start = 0;
@@ -92,6 +93,7 @@ void toggle_led_per_time_ms(unsigned int toggle_interval_ms);
 /* timer functions */
 void init_timer0(void); // Timer0
 void init_timer_ultrasonic(void); // Timer1
+void init_timer_dynamic_segment(void); // Timer3
 
 /* 7 segment functions */
 void init_7_segment(void);
@@ -140,6 +142,8 @@ void main(void) {
     stop_watchdog_timer();
 
     init_timer0();
+    init_timer_dynamic_segment();
+    init_timer_ultrasonic();
 
     init_7_segment();
     init_right_switch();
@@ -154,12 +158,11 @@ void main(void) {
     init_motor();
 
     init_ultrasonic();
-    init_timer_ultrasonic();
+
     enable_interrupt_vector();
 
     while(1){
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
-        show_screen_arr(); // show adc_data
 
         keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr);
 
@@ -381,11 +384,10 @@ void init_7_segment(void){
 }
 
 void init_timer0(void){
-    /* Timer - Timer0 */
+    // Timer - Timer0
     TA0CCTL0 = CCIE;
-    TA0CCR0 = 1000; //1000;
+    TA0CCR0 = 1000; // 1ms;
     TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
-    /* END Timer - Timer0 */
 }
 
 void init_timer_ultrasonic(void){// Timer1
@@ -393,6 +395,13 @@ void init_timer_ultrasonic(void){// Timer1
     TA1CCTL0 = CCIE;
     TA1CCR0 = 50;    // 50us
     TA1CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1MHz / Up mode to CCR0
+}
+
+void init_timer_dynamic_segment(void){
+    // Timer - Timer2
+    TA2CCTL0 = CCIE;
+    TA2CCR0 = 5000; // 5ms;
+    TA2CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
 }
 
 void show_screen(unsigned int value){
@@ -996,10 +1005,6 @@ __interrupt void TIMER0_A0_ISR(void)
     if(smclk_cnt>1000){ // 1초를 셈 (1ms)
         smclk_cnt=0;
     }
-    dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
-    if (dynamic_segment_cnt > 3) {
-        dynamic_segment_cnt = 0; // count 순회
-    }
 
     /* lock counters */
     // enable(1) 되었을때만 카운트.
@@ -1065,3 +1070,15 @@ __interrupt void TIMER1_A0_ISR(void) {
         g_ultrasonic_flag = 0;
     }
 }
+
+// Timer2 : Dynamic Segment Timer
+#pragma vector=TIMER2_A0_VECTOR
+__interrupt void TIMER2_A0_ISR(void)
+{
+    dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
+    if (dynamic_segment_cnt > 3) {
+        dynamic_segment_cnt = 0; // count 순회
+    }
+    show_screen_arr(); // show adc_data
+}
+
