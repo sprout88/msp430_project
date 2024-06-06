@@ -2,7 +2,7 @@
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd };
 
-unsigned int dynamic_segment_cnt = 0;
+unsigned int cnt = 0;
 unsigned long usec = 0;
 unsigned int data = 0;
 unsigned long start_time = 0;

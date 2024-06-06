@@ -6,6 +6,7 @@
 unsigned int tmp1 = 0;
 unsigned int tmp2 = 0;
 
+/* datas */
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
     0x00, /* 0 : 꺼짐 */
@@ -15,8 +16,20 @@ unsigned int screen_arr[4] = {0x00,0x00,0x00,0x00};
 unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
+// ultrasonic data
+unsigned int g_ultrasonic_data = 0;
+unsigned long g_ultrasonic_sec = 0;
+
+unsigned long g_ultrasonic_start_time = 0;
+unsigned long g_ultrasonic_end_time = 0;
+unsigned long g_ultrasonic_delta_time = 0;
+unsigned long g_ultrasonic_distance = 0;
+
+unsigned int g_ultrasonic_flag = 0;
+
+
 /* project phase */
-unsigned int proj_2_phase = 0;
+unsigned int proj_2_phase = 4;
 
 /* timers */
 unsigned int led_toggle_cnt = 0;
@@ -39,7 +52,7 @@ unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 char p4_7_left_led_on = 0; // led and screen error fix
 
-char keypad_pushed_lock_arr[12] = {0,}; // 1~9 + 0,*,# *=[11], #=[12]
+char keypad_pushed_lock_arr[13] = {0,}; // 1~9 + 0,*,# *=[11], #=[12]
 
 
 /* function locks */
@@ -75,9 +88,12 @@ void turn_on_led(int led_num);
 void turn_off_led(int led_num);
 void toggle_led_per_time_ms(unsigned int toggle_interval_ms);
 
+/* timer functions */
+void init_timer0(void); // Timer0
+void init_timer_ultrasonic(void); // Timer1
+
 /* 7 segment functions */
 void init_7_segment(void);
-void init_smclk(void);
 void show_screen(unsigned int);
 void show_screen_arr(void);
 
@@ -103,6 +119,9 @@ void ADC_repeat_single_read(unsigned int* p_data);
 void adc_data_scale_and_save_to_segment_arr(unsigned int* p_adc_data, unsigned int* p_screen_arr);
 void adc_single_read_to_segment(void);
 
+/* ultrasonic sensor functions */
+void init_ultrasonic(void);
+
 /* interrupt functions */
 void enable_interrupt_vector(void);
 
@@ -118,7 +137,7 @@ unsigned int scale_transform(int input);
 void main(void) {
     stop_watchdog_timer();
 
-    init_smclk();
+    init_timer0();
 
     init_7_segment();
     init_right_switch();
@@ -132,6 +151,8 @@ void main(void) {
 
     init_motor();
 
+    init_ultrasonic();
+    init_timer_ultrasonic();
     enable_interrupt_vector();
 
     while(1){
@@ -145,7 +166,16 @@ void main(void) {
         if(proj_2_phase==3){ // 모터 증감속은 2-3 에서만 작동함
             keypad_push_motor_handler(keypad_pushed_lock_arr, &g_clockwise_pwm, &g_anti_clockwise_pwm); // set_motor_spin_pwm 과 함께 사용
         }
-        
+
+        if(proj_2_phase==4){
+            if(g_ultrasonic_flag==0){
+                P2OUT |= BIT7;  // Trig on
+                __delay_cycles(10); // 10us
+                P2OUT &= ~BIT7; // Trig off
+                g_ultrasonic_flag = 1;
+            }
+        }
+
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
 
     }
@@ -355,12 +385,19 @@ void init_7_segment(void){
     P4OUT = 0x0F; // segment : XXXX
 }
 
-void init_smclk(void){
+void init_timer0(void){
     /* Timer - Timer0 */
     TA0CCTL0 = CCIE;
     TA0CCR0 = 1000; //1000;
     TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
     /* END Timer - Timer0 */
+}
+
+void init_timer_ultrasonic(void){// Timer1
+    // Timer - Timer1
+    TA1CCTL0 = CCIE;
+    TA1CCR0 = 50;    // 50us
+    TA1CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1MHz / Up mode to CCR0
 }
 
 void show_screen(unsigned int value){
@@ -884,7 +921,7 @@ void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* 
     }
 }
 void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_clockwise_pwm,unsigned int* p_anti_clockwise_pwm){
-    
+
     if(motor_ms_cooldown==0){ // 모터의 속도를 조절 (7초 동안 서서히 증가&감소 하도록)
         switch(p_keypad_push_lock_arr[11]){
         case 1: // * 를 누르면,
@@ -921,6 +958,15 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_cloc
                 break;
         }
     }
+}
+
+void init_ultrasonic(void){
+    P2DIR |= BIT7;
+    P2OUT &= ~BIT7;  // Trig off
+    P1IE |= BIT4;    // Interrupt enabled
+    P1IES &= ~BIT4;  // Rising edge
+    P1IES |= BIT4;   // Falling edge
+    P1IFG &= ~BIT4;  // Clear interrupt flag
 }
 
 // Timer interrupt service routine
@@ -964,8 +1010,9 @@ __interrupt void Port_2(void)
     P2IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
 
-// left switch interrupt
+
 #pragma vector=PORT1_VECTOR
+// left switch interrupt
 __interrupt void Port_1(void)
 {
     if((P1IN & BIT1) == 0)
@@ -974,4 +1021,32 @@ __interrupt void Port_1(void)
         left_switch_interrupt_handler();
     }
     P1IFG &= ~BIT1; // IFG clear (Interrupt END)
+
+// Ultrasonic Sensor Interrupt
+    if (P1IFG & BIT4) {
+        if ((P1IES & BIT4) == 0) { // if rising edge
+            g_ultrasonic_sec = 0;
+            // TACCTL1 |= TACLR;
+            P1IES |= BIT4; // falling edge
+        } else if (P1IES & BIT4) { // if falling edge
+            if (g_ultrasonic_sec > 3 && g_ultrasonic_sec < 500) { // 150us ~ 25ms
+                g_ultrasonic_data = g_ultrasonic_sec * 50 / 58; // data = g_ultrasonic_sec * 50 / 58;
+            } else if (g_ultrasonic_sec >= 760) {
+                g_ultrasonic_data = 9999;
+            }
+            g_ultrasonic_sec = 0;
+            P1IES &= ~BIT4; // rising edge
+        }
+        g_ultrasonic_flag = 0;
+        P1IFG &= ~BIT4; // IFG is cleared
+    }
+}
+
+// Timer1 : Ultrasonic Timer
+#pragma vector=TIMER1_A0_VECTOR
+__interrupt void TIMER1_A0_ISR(void) {
+    g_ultrasonic_sec++;
+    if (g_ultrasonic_flag == 1 && g_ultrasonic_sec > 1000) {
+        g_ultrasonic_flag = 0;
+    }
 }

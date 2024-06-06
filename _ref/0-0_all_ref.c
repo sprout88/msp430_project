@@ -23,7 +23,7 @@ void left_switch_interrupt_handler(void);
 
 /* 7 segment functions */
 void init_7_segment(void);
-void init_smclk(void);
+void init_timer0(void);
 void show_screen_decimal(unsigned int);
 void show_screen_arr();
 
@@ -95,10 +95,10 @@ void init_7_segment(void){
     P4DIR |= 0x000f;
     P4OUT &= ~BIT0;
     /* END 7 segment Digital Output */
-    init_smclk();
+    init_timer0();
 }
 
-void init_smclk(void){
+void init_timer0(void){
     /* Timer - Timer0 */
     TA0CCTL0 = CCIE;
     TA0CCR0 = 5000; //1000;
