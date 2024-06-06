@@ -357,7 +357,7 @@ void stop_watchdog_timer(void){
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
 
-void init_left_switch(void){
+void init_left_switch(void)
     P1OUT |= BIT1; // DIR
     P1REN |= BIT1; // pull up resister
 
@@ -380,7 +380,7 @@ void init_7_segment(void){
     P3DIR |= 0xffff;
     P3OUT &= 0x0000;
     P4DIR |= 0x000f;
-    P4OUT = 0x0F; // segment : XXXX
+    P4OUT &= ~BIT0;
 }
 
 void init_timer0(void){
@@ -439,40 +439,7 @@ void show_screen(unsigned int value){
 }
 
 void show_screen_arr(void){
-    if (dynamic_segment_cnt > 3)
-            dynamic_segment_cnt = 0; // count 순회
-
-    switch (dynamic_segment_cnt)
-    {
-    case 0:
-        P3OUT = screen_arr[0];
-        if(p4_7_left_led_on) // segment : XXXO
-            P4OUT = 0x8E;
-        else
-            P4OUT = 0x0E;
-        break;
-    case 1:
-        P3OUT = screen_arr[1];
-        if(p4_7_left_led_on) // segment : XXOX
-            P4OUT = 0x8D;
-        else
-            P4OUT = 0x0D;
-        break;
-    case 2:
-        P3OUT = screen_arr[2];
-        if(p4_7_left_led_on) // segment : XOXX
-            P4OUT = 0x8B;
-        else
-            P4OUT = 0x0B;
-        break;
-    case 3:
-        P3OUT = screen_arr[3];
-        if(p4_7_left_led_on) // segment : OXXX
-            P4OUT = 0x87;
-        else
-            P4OUT = 0x07;
-        break;
-    }
+    
 }
 
 unsigned int scale_transform(int input) {
@@ -1076,9 +1043,29 @@ __interrupt void TIMER1_A0_ISR(void) {
 __interrupt void TIMER2_A0_ISR(void)
 {
     dynamic_segment_cnt++; // 7 Segment Dynamic 구동 타이머
-    if (dynamic_segment_cnt > 3) {
+    if (dynamic_segment_cnt > 3)
         dynamic_segment_cnt = 0; // count 순회
+
+    switch (dynamic_segment_cnt)
+    {
+    case 0:
+        P3OUT = screen_arr[0];
+        P4OUT &= ~BIT0;
+        P4OUT |= (BIT1|BIT2|BIT3);
+
+    case 1:
+        P3OUT = screen_arr[1];
+        P4OUT &= ~BIT1;
+        P4OUT |= (BIT0|BIT2|BIT3);
+
+    case 2:
+        P3OUT = screen_arr[2];
+        P4OUT &= ~BIT2;
+        P4OUT |= (BIT0|BIT1|BIT3);
+    case 3:
+        P3OUT = screen_arr[3];
+        P4OUT &= ~BIT3;
+        P4OUT |= (BIT0|BIT1|BIT2);
     }
-    show_screen_arr(); // show adc_data
 }
 
