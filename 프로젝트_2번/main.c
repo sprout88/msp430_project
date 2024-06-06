@@ -879,10 +879,10 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_cloc
         switch(p_keypad_push_lock_arr[11]){
         case 1:
             if(*p_clockwise_pwm<1000)
-                (*p_clockwise_pwm)++;
+                (*p_clockwise_pwm)+=100;
             else if(*p_clockwise_pwm>=1000 && *p_anti_clockwise_pwm != 0){ // 1000 보다 커지면 반대쪽 pwm 감소
                 *p_clockwise_pwm = 1000;
-                (*p_anti_clockwise_pwm)--;
+                (*p_anti_clockwise_pwm)-=100;
             }
 
             if(*p_clockwise_pwm<300){
@@ -891,16 +891,16 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_cloc
             if(*p_anti_clockwise_pwm<300){
                 *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
             }
-            motor_ms_cooldown = 10;
+            motor_ms_cooldown = 1000;
             break;
         }
         switch(p_keypad_push_lock_arr[12]){
             case 1:
                 if(*p_anti_clockwise_pwm<1000)
-                    (*p_anti_clockwise_pwm)++;
+                    (*p_anti_clockwise_pwm)+=100;
                 else if(*p_anti_clockwise_pwm>=1000 && *p_clockwise_pwm != 0){  // 1000 보다 커지면 반대쪽 pwm 감소
                     *p_anti_clockwise_pwm = 1000;
-                    (*p_clockwise_pwm)--;
+                    (*p_clockwise_pwm)-=100;
                 }
                 if(*p_anti_clockwise_pwm<300){
                     *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
@@ -908,7 +908,7 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_cloc
                 if(*p_clockwise_pwm<300){
                     *p_clockwise_pwm = 300; // 초기구간 건너뛰기
                 }
-                motor_ms_cooldown = 1;
+                motor_ms_cooldown = 1000;
                 break;
         }
         
