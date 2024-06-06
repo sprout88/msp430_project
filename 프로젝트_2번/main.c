@@ -11,7 +11,7 @@ unsigned int special_digits[] = {
     0x00, /* 0 : 꺼짐 */
     0x20, // 0 : dot */
 };
-unsigned int screen_arr[4] = {special_digits[0],special_digits[0],special_digits[0],special_digits[0]};
+unsigned int screen_arr[4] = {0x00,0x00,0x00,0x00};
 unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
@@ -22,14 +22,22 @@ char motor_cnt_7_lock = 0; // counter lock, enable(1) 일때만 카운트. lock(
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 
-/* locks */
-unsigned int toggle_lock = 0; // 0 : off, 1 : on
+/* switch locks */
 unsigned int is_left_switch = 0;
 unsigned int is_right_switch = 0;
+unsigned int p2_1_switch_clicked_cnt = 0;
+
+/* locks */
+unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 char p4_7_left_led_on = 0; // led and screen error fix
 
+
+/* function locks */
+unsigned int toggle_led_per_time_ms_lock = 0;
+
+/* states */
 unsigned int g_anti_clockwise_pwm = 0;
 unsigned int g_clockwise_pwm = 0;
 
@@ -128,8 +136,18 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
-    ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
-    adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
+    switch(p2_1_switch_clicked_cnt){
+        case 1:
+            ADC_single_read(&adc_data); // read adc hardware and save to global_var:adc_data
+            adc_data_scale_and_save_to_segment_arr(&adc_data,&screen_arr[0]); // convert adc_data to special scaled formet and save to segment_arr
+            break;
+        case 2:
+            toggle_led_per_time_ms_lock = 1; // unlock toggle_led_per_ms mode
+            break;
+
+    }
+    p2_1_switch_clicked_cnt++;
+
 
     if(toggle_lock == 1){ // adc_scaled_sec 로 led를 이미 toggle 중이였다면 종료 후 모터 모드로 전환
 
@@ -470,7 +488,7 @@ void enable_interrupt_vector(void){
 }
 
 void toggle_led_per_time_ms(unsigned int toggle_interval_ms){
-    if(toggle_lock==1){
+    if(toggle_led_per_time_ms_lock==1){
         // toggle two led per time
         if(led_toggle_cnt > toggle_interval_ms ){
             // toggle leds
