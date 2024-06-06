@@ -74,7 +74,7 @@ void show_screen_arr(void);
 
 /* keypad functions */
 void init_keypad(void);
-void keypad_input_polling_checker(void);
+void keypad_input_polling_checker_anticht_by_while(void);
 void keypad_push_handler(unsigned int key);
 void keypad_release_handler(unsigned int key);
 
@@ -125,7 +125,7 @@ void main(void) {
     while(1){
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
-        keypad_input_polling_checker();
+        keypad_input_polling_checker_anticht_by_while();
         set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
         motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7, &g_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
@@ -553,7 +553,7 @@ void init_keypad(void){
 }
 
 // keypad handler
-void keypad_input_polling_checker(void){
+void keypad_input_polling_checker_anticht_by_while(void){ // 꾸욱 누르는 동안 다른 코드가 작동안함(while 문 안에 갇힘)
     // columns 1
     P2OUT &= ~BIT2;
     P2OUT |= (BIT0 | BIT3);
