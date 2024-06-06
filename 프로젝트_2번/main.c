@@ -32,7 +32,8 @@ unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 char p4_7_left_led_on = 0; // led and screen error fix
-char keypad_pushed_lock = 0;
+
+char keypad_pushed_lock_arr[12] = {0,}; // 1~9 + 0,*,# *=[11], #=[12]
 
 
 /* function locks */
@@ -78,7 +79,7 @@ void init_keypad(void);
 void keypad_input_polling_checker_anticht_by_while(void);
 void keypad_push_handler(unsigned int key);
 void keypad_release_handler(unsigned int key);
-void keypad_input_polling_checker_anticht_by_lock(void);
+void keypad_input_polling_checker_anticht_by_lock(char* p_pushed_lock_arr);
 
 /* motor and encoder functions */
 void init_motor(void);
@@ -128,7 +129,7 @@ void main(void) {
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
 
-        keypad_input_polling_checker_anticht_by_lock();
+        keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr[0]);
 
         set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
         motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7, &g_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
@@ -650,20 +651,116 @@ void keypad_input_polling_checker_anticht_by_while(void){ // 꾸욱 누르는 �
 
     }
 }
-void keypad_input_polling_checker_anticht_by_lock(void){ // 꾸욱 누르면 keypad_pushed_lock이 0일때만 keypad_push_handler 를 호출하고 keypad_pushed_lock = 1 로 바뀜. 떼면 0 으로 바뀌면서 release_handler 호출
-    // columns 1
+void keypad_input_polling_checker_anticht_by_lock(char* p_pushed_lock_arr) {
+    // Columns 1
     P2OUT &= ~BIT2;
     P2OUT |= (BIT0 | BIT3);
 
-    if ((P6IN & BIT3) == 0 && keypad_pushed_lock==0){ // 키패드가 눌리지 않은 상태에서 눌림 감지
+    if ((P6IN & BIT3) == 0 && p_pushed_lock_arr[1] == 0) { // Button 1
         keypad_push_handler(1);
-        keypad_pushed_lock = 1; // 눌림락. 중복 인식을 방지
-    }else if((P6IN & BIT3) != 0 && keypad_pushed_lock == 1){ // 눌림락 상태에서 눌림 없음 감지(뗌)
+        p_pushed_lock_arr[1] = 1; // Lock the button
+    } else if ((P6IN & BIT3) != 0 && p_pushed_lock_arr[1] == 1) {
         keypad_release_handler(1);
-        keypad_pushed_lock = 0; // 눌림락 해제. 다시 누르기 가능
+        p_pushed_lock_arr[1] = 0; // Unlock the button
     }
 
+    if ((P6IN & BIT6) == 0 && p_pushed_lock_arr[4] == 0) { // Button 4
+        keypad_push_handler(4);
+        p_pushed_lock_arr[4] = 1; // Lock the button
+    } else if ((P6IN & BIT6) != 0 && p_pushed_lock_arr[4] == 1) {
+        keypad_release_handler(4);
+        p_pushed_lock_arr[4] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT5) == 0 && p_pushed_lock_arr[7] == 0) { // Button 7
+        keypad_push_handler(7);
+        p_pushed_lock_arr[7] = 1; // Lock the button
+    } else if ((P6IN & BIT5) != 0 && p_pushed_lock_arr[7] == 1) {
+        keypad_release_handler(7);
+        p_pushed_lock_arr[7] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT4) == 0 && p_pushed_lock_arr[11] == 0) { // Button *
+        keypad_push_handler(11);
+        p_pushed_lock_arr[11] = 1; // Lock the button
+    } else if ((P6IN & BIT4) != 0 && p_pushed_lock_arr[11] == 1) {
+        keypad_release_handler(11);
+        p_pushed_lock_arr[11] = 0; // Unlock the button
+    }
+
+    // Columns 2
+    P2OUT &= ~BIT0;
+    P2OUT |= (BIT2 | BIT3);
+
+    if ((P6IN & BIT3) == 0 && p_pushed_lock_arr[2] == 0) { // Button 2
+        keypad_push_handler(2);
+        p_pushed_lock_arr[2] = 1; // Lock the button
+    } else if ((P6IN & BIT3) != 0 && p_pushed_lock_arr[2] == 1) {
+        keypad_release_handler(2);
+        p_pushed_lock_arr[2] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT6) == 0 && p_pushed_lock_arr[5] == 0) { // Button 5
+        keypad_push_handler(5);
+        p_pushed_lock_arr[5] = 1; // Lock the button
+    } else if ((P6IN & BIT6) != 0 && p_pushed_lock_arr[5] == 1) {
+        keypad_release_handler(5);
+        p_pushed_lock_arr[5] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT5) == 0 && p_pushed_lock_arr[8] == 0) { // Button 8
+        keypad_push_handler(8);
+        p_pushed_lock_arr[8] = 1; // Lock the button
+    } else if ((P6IN & BIT5) != 0 && p_pushed_lock_arr[8] == 1) {
+        keypad_release_handler(8);
+        p_pushed_lock_arr[8] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT4) == 0 && p_pushed_lock_arr[0] == 0) { // Button 0
+        keypad_push_handler(0);
+        p_pushed_lock_arr[0] = 1; // Lock the button
+    } else if ((P6IN & BIT4) != 0 && p_pushed_lock_arr[0] == 1) {
+        keypad_release_handler(0);
+        p_pushed_lock_arr[0] = 0; // Unlock the button
+    }
+
+    // Columns 3
+    P2OUT &= ~BIT3;
+    P2OUT |= (BIT0 | BIT2);
+
+    if ((P6IN & BIT3) == 0 && p_pushed_lock_arr[3] == 0) { // Button 3
+        keypad_push_handler(3);
+        p_pushed_lock_arr[3] = 1; // Lock the button
+    } else if ((P6IN & BIT3) != 0 && p_pushed_lock_arr[3] == 1) {
+        keypad_release_handler(3);
+        p_pushed_lock_arr[3] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT6) == 0 && p_pushed_lock_arr[6] == 0) { // Button 6
+        keypad_push_handler(6);
+        p_pushed_lock_arr[6] = 1; // Lock the button
+    } else if ((P6IN & BIT6) != 0 && p_pushed_lock_arr[6] == 1) {
+        keypad_release_handler(6);
+        p_pushed_lock_arr[6] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT5) == 0 && p_pushed_lock_arr[9] == 0) { // Button 9
+        keypad_push_handler(9);
+        p_pushed_lock_arr[9] = 1; // Lock the button
+    } else if ((P6IN & BIT5) != 0 && p_pushed_lock_arr[9] == 1) {
+        keypad_release_handler(9);
+        p_pushed_lock_arr[9] = 0; // Unlock the button
+    }
+
+    if ((P6IN & BIT4) == 0 && p_pushed_lock_arr[12] == 0) { // Button #
+        keypad_push_handler(12);
+        p_pushed_lock_arr[12] = 1; // Lock the button
+    } else if ((P6IN & BIT4) != 0 && p_pushed_lock_arr[12] == 1) {
+        keypad_release_handler(12);
+        p_pushed_lock_arr[12] = 0; // Unlock the button
+    }
 }
+
 // motor functions
 void init_motor(void){
     // PWN set
