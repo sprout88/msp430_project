@@ -83,7 +83,7 @@ void keypad_input_polling_checker_anticht_by_lock(char* p_pushed_lock_arr);
 
 /* motor and encoder functions */
 void init_motor(void);
-void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn);
+void set_motor_spin_pwm(unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwn);
 void motor_speed_controller_7(int clockwise, unsigned int* p_cnt_7, int* p_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
 void keypad_push_motor_handler(char* p_keypad_push_lock_arr);
 
@@ -132,7 +132,7 @@ void main(void) {
 
         keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr);
 
-        set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm);// 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
+        set_motor_spin_pwm(&g_clockwise_pwm,&g_anti_clockwise_pwm);// 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
 
         keypad_push_motor_handler(keypad_pushed_lock_arr); // set_motor_spin_pwm 과 함께 사용
 
@@ -770,10 +770,28 @@ void init_motor(void){
     TA2CCR1 = 0;
     TA2CTL = TASSEL_2 + MC_1;
 }
-void set_motor_spin_pwm(unsigned int clockwise_pwm, unsigned int anti_clockwise_pwn){
+void set_motor_spin_pwm(unsigned int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwn){
+    unsigned int clockwise_pwm = *p_clockwise_pwm;
+    unsigned int anti_clockwise_pwn = *p_anti_clockwise_pwn;
+
+
+    /* 모터 pwm 이 overflow 되는 것을 방지 */
+    if(clockwise_pwm>0 && clockwise_pwm<=300){
+        *p_clockwise_pwm = 300;
+    }
+    if(clockwise_pwm>1000){
+        *p_clockwise_pwm = 1000;
+    }
+
+    if(anti_clockwise_pwn>0 && anti_clockwise_pwn<=300){
+        *p_clockwise_pwm = 300;
+    }
+    if(anti_clockwise_pwn>1000){
+        *p_clockwise_pwm = 1000;
+    }
+
     TA2CCR2 = clockwise_pwm;
     TA2CCR1 = anti_clockwise_pwn;
-
 
 }
 
