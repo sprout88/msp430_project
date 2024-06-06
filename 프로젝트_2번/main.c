@@ -8,9 +8,10 @@ unsigned int tmp2 = 0;
 
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
-    0x20, /* dot */
+    0x00, /* 0 : 꺼짐 */
+    0x20, // 0 : dot */
 };
-unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0x5d};
+unsigned int screen_arr[4] = {special_digits[0],special_digits[0],special_digits[0],special_digits[0]};
 unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
