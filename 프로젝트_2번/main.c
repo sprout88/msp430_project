@@ -189,7 +189,7 @@ void right_switch_interrupt_handler(void){
             adc_single_read_to_segment_lock = 1; // unlock
             break;
         case 2: // 2-2 : ADC 값 만큼 LED 토글
-            adc_single_read_to_segment_lock = 1; // lock previous actions
+            adc_single_read_to_segment_lock = 0; // lock previous actions
             toggle_led_per_time_ms_lock = 1; // unlock toggle_led_per_ms mode
             break;
         case 3: // 2-3 모터 증감속
