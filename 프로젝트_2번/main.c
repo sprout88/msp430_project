@@ -129,7 +129,7 @@ void main(void) {
         toggle_led_per_time_ms(scaled_adc_data*100); // only if toggle_lock = true, scaled_adc_data(0~20)
         show_screen_arr(); // show adc_data
 
-        keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr[0]);
+        keypad_input_polling_checker_anticht_by_lock(keypad_pushed_lock_arr);
 
         set_motor_spin_pwm(g_anti_clockwise_pwm,g_clockwise_pwm); // 모터 회전, switch interrupt handler 에 의해 global_pwm 변경으로 회전 조정
         motor_speed_controller_7(g_motor_spin_direction_signal, &motor_cnt_7, &g_motor_signal); // set_motor_spin_pwm 과 같이 사용해야함
