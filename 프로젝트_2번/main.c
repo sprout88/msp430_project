@@ -22,6 +22,8 @@ char motor_cnt_7_lock = 0; // counter lock, enable(1) 일때만 카운트. lock(
 unsigned int dynamic_segment_cnt = 0; // iterate 0~3
 unsigned int smclk_cnt = 0; // iterate 0ms ~ 1000ms
 
+/* cooldowns */
+unsigned int motor_ms_cooldown = 0; // if not 0, -- to 0
 
 /* switch locks */
 unsigned int is_left_switch = 0;
@@ -873,8 +875,8 @@ void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* 
     }
 }
 void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_clockwise_pwm,unsigned int* p_anti_clockwise_pwm){
-
-    switch(p_keypad_push_lock_arr[11]){
+    if(motor_ms_cooldown==0){
+        switch(p_keypad_push_lock_arr[11]){
         case 1:
             if(*p_clockwise_pwm<1000)
                 (*p_clockwise_pwm)++;
@@ -889,24 +891,27 @@ void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_cloc
             if(*p_anti_clockwise_pwm<300){
                 *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
             }
-
+            motor_ms_cooldown = 10;
             break;
-    }
-    switch(p_keypad_push_lock_arr[12]){
-        case 1:
-            if(*p_anti_clockwise_pwm<1000)
-                (*p_anti_clockwise_pwm)++;
-            else if(*p_anti_clockwise_pwm>=1000 && *p_clockwise_pwm != 0){  // 1000 보다 커지면 반대쪽 pwm 감소
-                *p_anti_clockwise_pwm = 1000;
-                (*p_clockwise_pwm)--;
-            }
-            if(*p_anti_clockwise_pwm<300){
-                *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
-            }
-            if(*p_clockwise_pwm<300){
-                *p_clockwise_pwm = 300; // 초기구간 건너뛰기
-            }
-            break;
+        }
+        switch(p_keypad_push_lock_arr[12]){
+            case 1:
+                if(*p_anti_clockwise_pwm<1000)
+                    (*p_anti_clockwise_pwm)++;
+                else if(*p_anti_clockwise_pwm>=1000 && *p_clockwise_pwm != 0){  // 1000 보다 커지면 반대쪽 pwm 감소
+                    *p_anti_clockwise_pwm = 1000;
+                    (*p_clockwise_pwm)--;
+                }
+                if(*p_anti_clockwise_pwm<300){
+                    *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
+                }
+                if(*p_clockwise_pwm<300){
+                    *p_clockwise_pwm = 300; // 초기구간 건너뛰기
+                }
+                motor_ms_cooldown = 1;
+                break;
+        }
+        
     }
 }
 
@@ -931,6 +936,12 @@ __interrupt void TIMER0_A0_ISR(void)
     // enable(1) 되었을때만 카운트.
     if(motor_cnt_7_lock==1)
         motor_cnt_7++; // 1++ per 1ms, iterate
+
+    /* cooldowns */
+    // 외부에서 cooldown 값으로 변하고, 0으로 바꾸기 위해 count 함
+    if(motor_ms_cooldown!=0){
+        motor_ms_cooldown--;
+    }
 }
 
 // right switch interrupt
