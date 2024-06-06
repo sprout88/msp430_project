@@ -795,6 +795,32 @@ void set_motor_spin_pwm(unsigned int* p_clockwise_pwm, unsigned int* p_anti_cloc
 
 }
 
+void set_motor_spin_pwm_single(int* p_total_pwm, int* p_clockwise_pwm, unsigned int* p_anti_clockwise_pwn){
+    unsigned int clockwise_pwm = *p_clockwise_pwm;
+    unsigned int anti_clockwise_pwn = *p_anti_clockwise_pwn;
+
+    /* 모터 pwm 이 overflow 되는 것을 방지 */
+    if(clockwise_pwm>0 && clockwise_pwm<=300){
+        *p_clockwise_pwm = 300;
+    }
+    if(clockwise_pwm>1000){
+        *p_clockwise_pwm = 1000;
+    }
+
+    if(anti_clockwise_pwn>0 && anti_clockwise_pwn<=300){
+        *p_clockwise_pwm = 300;
+    }
+    if(anti_clockwise_pwn>1000){
+        *p_clockwise_pwm = 1000;
+    }
+
+    *p_total_pwm = clockwise_pwm+anti_clockwise_pwn;
+
+    TA2CCR2 = clockwise_pwm;
+    TA2CCR1 = anti_clockwise_pwn;
+
+}
+
 void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* p_motor_signal){ // set_motor_spin_pwm 과 같이 사용해야함
     unsigned int interpolated_pwm = 0;
 
