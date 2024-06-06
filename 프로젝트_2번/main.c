@@ -875,43 +875,42 @@ void motor_speed_controller_7(int dir_signal_recved, unsigned int* p_cnt_7,int* 
     }
 }
 void keypad_push_motor_handler(char* p_keypad_push_lock_arr,unsigned int* p_clockwise_pwm,unsigned int* p_anti_clockwise_pwm){
-    if(motor_ms_cooldown==0){
+    
+    if(motor_ms_cooldown==0){ // 모터의 속도를 조절 (7초 동안 서서히 증가&감소 하도록)
         switch(p_keypad_push_lock_arr[11]){
-        case 1:
-            if(*p_clockwise_pwm<1000)
+        case 1: // * 를 누르면,
+            if(*p_clockwise_pwm<1000){
+                if(*p_clockwise_pwm<300){
+                    *p_clockwise_pwm = 300; // 초기구간 건너뛰기
+                }
                 (*p_clockwise_pwm)+=100;
+            }
             else if(*p_clockwise_pwm>=1000 && *p_anti_clockwise_pwm != 0){ // 1000 보다 커지면 반대쪽 pwm 감소
                 *p_clockwise_pwm = 1000;
                 (*p_anti_clockwise_pwm)-=100;
+                if((*p_anti_clockwise_pwm)==0) // 300까지 감소하면 0으로 점프
+                    (*p_anti_clockwise_pwm)=0;
             }
-
-            if(*p_clockwise_pwm<300){
-                *p_clockwise_pwm = 300; // 초기구간 건너뛰기
-            }
-            if(*p_anti_clockwise_pwm<300){
-                *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
-            }
-            motor_ms_cooldown = 1000;
+            motor_ms_cooldown = 1000; // 1sec/100pwm, 7sec/300~1000pwm
             break;
         }
         switch(p_keypad_push_lock_arr[12]){
             case 1:
-                if(*p_anti_clockwise_pwm<1000)
+                if(*p_anti_clockwise_pwm<1000){
+                    if(*p_anti_clockwise_pwm<300){
+                        *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
+                    }
                     (*p_anti_clockwise_pwm)+=100;
+                }
                 else if(*p_anti_clockwise_pwm>=1000 && *p_clockwise_pwm != 0){  // 1000 보다 커지면 반대쪽 pwm 감소
                     *p_anti_clockwise_pwm = 1000;
                     (*p_clockwise_pwm)-=100;
-                }
-                if(*p_anti_clockwise_pwm<300){
-                    *p_anti_clockwise_pwm = 300; // 초기구간 건너뛰기
-                }
-                if(*p_clockwise_pwm<300){
-                    *p_clockwise_pwm = 300; // 초기구간 건너뛰기
+                    if((*p_clockwise_pwm)==0) // 300까지 감소하면 0으로 점프
+                    (*p_clockwise_pwm)=0;
                 }
                 motor_ms_cooldown = 1000;
                 break;
         }
-        
     }
 }
 
