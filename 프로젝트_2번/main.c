@@ -316,13 +316,19 @@ void adc_single_read_to_segment(){
     }
 }
 void adc_data_scale_and_save_to_segment_arr(unsigned int* p_adc_data, unsigned int* p_screen_arr){
+
+    // 소수점 변환 수행
     scaled_adc_data = scale_transform(*p_adc_data);
+
+    // 자릿수 분리
     if(scaled_adc_data != 1111){
-        unsigned int units = scaled_adc_data/10%10; // ??N.???
-        unsigned int tenths_place_num = scaled_adc_data%10; // ???.N??
-        p_screen_arr[3] = digits[0]; // far left
-        p_screen_arr[2] = digits[units]; // mid left
-        p_screen_arr[1] = special_digits[0]; // mid right
+        unsigned int units = scaled_adc_data/10%10; // xxN.?xx
+        unsigned int tenths_place_num = scaled_adc_data%10; // xxx.Nxx
+
+        // edit global screen arr
+        p_screen_arr[3] = special_digits[0]; // far left : off
+        p_screen_arr[2] = special_digits[0]; // mid left : off
+        p_screen_arr[1] = digits[units]+special_digits[1]; // mid right : units.
         p_screen_arr[0] = digits[tenths_place_num]; // far right
     }
 }
