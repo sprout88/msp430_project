@@ -15,6 +15,9 @@ unsigned int screen_arr[4] = {0x00,0x00,0x00,0x00};
 unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
+/* project phase */
+unsigned int proj_2_phase = 0;
+
 /* timers */
 unsigned int led_toggle_cnt = 0;
 unsigned int motor_cnt_7 = 0; // 문제 2-3 에서 모터 7초 세기 카운터
@@ -139,8 +142,10 @@ void main(void) {
 
         set_motor_spin_pwm_single(&g_total_pwm, &g_clockwise_pwm, &g_anti_clockwise_pwm);
 
-        keypad_push_motor_handler(keypad_pushed_lock_arr, &g_clockwise_pwm, &g_anti_clockwise_pwm); // set_motor_spin_pwm 과 함께 사용
-
+        if(proj_2_phase==3){ // 모터 증감속은 2-3 에서만 작동함
+            keypad_push_motor_handler(keypad_pushed_lock_arr, &g_clockwise_pwm, &g_anti_clockwise_pwm); // set_motor_spin_pwm 과 함께 사용
+        }
+        
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
 
     }
@@ -153,14 +158,18 @@ void main(void) {
 
 // right switch dir p2.1
 void right_switch_interrupt_handler(void){
-    p2_1_switch_clicked_cnt++;
-    switch(p2_1_switch_clicked_cnt){
-        case 1:
+    proj_2_phase++; // 프로젝트 번호에 따라 스위치가 다른 동작을 함.
+    switch(proj_2_phase){
+        case 1: // 2-1 : ADC 값을 0~2 로 매핑 후 세그먼트 출력
             adc_single_read_to_segment_lock = 1; // unlock
             break;
-        case 2:
+        case 2: // 2-2 : ADC 값 만큼 LED 토글
             adc_single_read_to_segment_lock = 1; // lock previous actions
             toggle_led_per_time_ms_lock = 1; // unlock toggle_led_per_ms mode
+            break;
+        case 3: // 2-3 모터 증감속
+            break;
+        case 4: // 2-4 : 초음파 거리 측정, 물체 감지 시 정지
             break;
 
     }
