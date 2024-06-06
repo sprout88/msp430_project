@@ -12,7 +12,7 @@ unsigned int special_digits[] = {
     0x00, /* 0 : 꺼짐 */
     0x20, // 0 : dot */
 };
-unsigned int screen_arr[4] = {0x00,0x00,0x00,0x00};
+unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0xd4};
 unsigned int adc_data = 3000;
 unsigned int scaled_adc_data = 0;
 
@@ -357,7 +357,7 @@ void stop_watchdog_timer(void){
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 }
 
-void init_left_switch(void)
+void init_left_switch(void){
     P1OUT |= BIT1; // DIR
     P1REN |= BIT1; // pull up resister
 
@@ -439,7 +439,7 @@ void show_screen(unsigned int value){
 }
 
 void show_screen_arr(void){
-    
+
 }
 
 unsigned int scale_transform(int input) {
