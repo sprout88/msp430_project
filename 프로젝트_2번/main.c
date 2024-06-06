@@ -51,6 +51,7 @@ unsigned int toggle_lock = 0; // 0 : off, 1 : on
 unsigned int screen_mode = 0; // 0: arr_mode, 1: decimal mode
 unsigned int led_toggle_state = 0;
 char p4_7_left_led_on = 0; // led and screen error fix
+char g_segment_arr_lock = 0; // 번짐 현상 fix
 
 char keypad_pushed_lock_arr[13] = {0,}; // 1~9 + 0,*,# *=[11], #=[12]
 
@@ -167,12 +168,11 @@ void main(void) {
         if(proj_2_phase==3){ // 모터 증감속은 2-3 에서만 작동함
             keypad_push_motor_handler(keypad_pushed_lock_arr, &g_clockwise_pwm, &g_anti_clockwise_pwm); // set_motor_spin_pwm 과 함께 사용
         }
-
+        show_screen(g_ultrasonic_data);
         if(proj_2_phase==4){
             ultrasonic_distance_check(&g_ultrasonic_data, &g_ultrasonic_flag);
-
+        
         }
-
         adc_single_read_to_segment(); // 처음엔 locked, switch handler 에 의해 unlock
 
     }
@@ -967,11 +967,21 @@ void init_ultrasonic(void){
 }
 
 void ultrasonic_distance_check(unsigned int* p_ultrasonic_data,unsigned int* p_ultrasonic_flag){
+
     if(*p_ultrasonic_flag==0){
         P2OUT |= BIT7;  // Trig on
-        __delay_cycles(10); // 10us
+        //__delay_cycles(10); // 10us
         P2OUT &= ~BIT7; // Trig off
         *p_ultrasonic_flag = 1;
+    }
+
+    // save to screen_arr
+    int value = *p_ultrasonic_data;
+    if(g_segment_arr_lock==0){
+        screen_arr[0] = digits[value%10]; // XXXO
+        screen_arr[1] = digits[value/10%10]; // XXOX
+        screen_arr[2] = digits[value/100%10]; // XOXX
+        screen_arr[3] = digits[value/1000%10]; // OXXX
     }
 }
 
