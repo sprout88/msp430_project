@@ -27,8 +27,9 @@ char segment_on = 0; // 세그먼트를 끄고 켬
 char phase1_start_checker = 0;
 char phase2_start_checker = 0;
 
-char stopwatch_lock = 0;
-unsigned int stopwatch = 0; // p1.0 led 점등 이후 p1.1 스위치를 몇초안에 눌렀는지 잼
+char stopwatch_start = 0;
+char stopwatch_end = 0;
+unsigned int stopwatch_timer = 0; // p1.0 led 점등 이후 p1.1 스위치를 몇초안에 눌렀는지 잼
 
 char random_time_start = 0;
 char random_time_end = 0;
@@ -130,17 +131,23 @@ void main(void){
                 if(random_time_end==1){
                     p4_7_led_1sec_start=1; // led 1초 켜기 시작
                     p4_7_led_1sec_timer = 1000;
+                    random_time_start=0;
                     random_time_end=0;
                 }
-                if(p4_7_led_1sec_start == 1 && p4_7_led_1sec_end != 1){ // led 1초간 켜기
-                    P4OUT |= BIT7; // led p4.7 on
-                }else{
+                if(p4_7_led_1sec_start == 0 && p4_7_led_1sec_end == 0){ // 시작 전
                     P4OUT &= ~BIT7; //led p4.7 off
+                }else if(p4_7_led_1sec_start == 1 && p4_7_led_1sec_end == 0){ // led 1초간 켜기
+                    P4OUT |= BIT7; // led p4.7 on
+                }else if(p4_7_led_1sec_start == 1 && p4_7_led_1sec_end == 1){ // led 1초 종료 후
+                    P4OUT &= ~BIT7; //led p4.7 off
+                    stopwatch_start = 1;
+                    p4_7_led_1sec_start = 0;
+                    p4_7_led_1sec_end = 0;
                 }
                 break;
             case 2: // 1-2 :
                 if(phase2_start_checker==0){
-
+                    stopwatch_end = 1;
                     phase2_start_checker = 1;
                 }
 
@@ -157,7 +164,7 @@ __interrupt void Port_1(void)
     if(btn_cool==0){
         if((P1IN & BIT1) == 0)
             {
-                btn_cool=100;
+                btn_cool=500;
                 phase++;
             }
     }
@@ -185,7 +192,6 @@ __interrupt void TIMER0_A0_ISR(void)
             random_time--;
         }else{
             random_time_end=1;
-            random_time_start=0;
         }
     }
 
@@ -193,8 +199,15 @@ __interrupt void TIMER0_A0_ISR(void)
         if(p4_7_led_1sec_timer!=0){
             p4_7_led_1sec_timer--;
         }else{
-            p4_7_led_1sec_start=0;
             p4_7_led_1sec_end=1;
+        }
+    }
+
+    if(stopwatch_start==1){
+        if(stopwatch_end!=1){
+            stopwatch_timer++;
+        }else{
+            stopwatch_start = 0;
         }
     }
 }
