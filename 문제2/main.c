@@ -46,6 +46,8 @@ unsigned int btn_cool = 0;
 char total_pwm_saved_flag = 0;
 unsigned int total_pwm_stored = 0;
 
+int encoder_cnt = 0;
+
 void main(void){
 
     // inits
@@ -123,6 +125,18 @@ void main(void){
     P1IES |= BIT4;   // Falling edge
     P1IFG &= ~BIT4;  // Clear interrupt flag
 
+    /* Encoder */
+    // EncoderA and EncoderB -> 위상 엇갈림
+    // EncoderA : P1_2
+    // EncoderB : P1_3
+    P1IE |= BIT2; // Interrupt enabled
+    P1IES |= BIT2; // Interrupt edge (Falling Edge)
+    P1IFG &= ~BIT2; // Interrupt flag
+
+    P1IE |= BIT3; // Interrupt enabled
+    P1IES |= BIT3; // Interrupt edge (Falling Edge)
+    P1IFG &= ~BIT3; // Interrupt flag
+
     // enable interrupt
     __bis_SR_register(GIE);
 
@@ -165,7 +179,7 @@ void main(void){
                     }
                     led_toggle_cool = (100*scaled_adc_data);
                 }
-                break;s
+                break;
             case 3: // 2-3 모터 증감속
                 if(seg_offed==0){
                     seg_offed=1;
@@ -285,7 +299,23 @@ void main(void){
                         TA2CCR1 = 0;
                     }
                 break;
-            case 5:
+            case 5: // 2-5 : 엔코더 장애물 감지
+                if(encoder_cnt<200){
+                    total_pwm = 0;
+                }else{
+                    total_pwm = total_pwm_stored;
+                }
+                // 모터 회전
+                    if(total_pwm>0){
+                        TA2CCR2 = total_pwm;
+                        TA2CCR1 = 0;
+                    }else if(total_pwm<0){
+                        TA2CCR2 = 0;
+                        TA2CCR1 = -total_pwm;
+                    }else if(total_pwm==0){
+                        TA2CCR2 = 0;
+                        TA2CCR1 = 0;
+                    }
 
                 break;
         }
@@ -302,6 +332,10 @@ __interrupt void Port_2(void)
             phase++;
         }
         btn_cool=1000;
+
+        if(phase==5){
+            total_pwm = total_pwm_stored;
+        }
     }
     P2IFG &= ~BIT1; // IFG clear
 }
@@ -329,6 +363,32 @@ __interrupt void Port_1(void)
         }
     }
     P1IFG &= ~BIT4; // IFG is cleared
+
+    /* Encoder interrupt */
+    if (P1IFG & BIT3) {
+        if ((P1IN & BIT2) != 0) {
+            encoder_cnt--;
+        } else {
+            encoder_cnt++;
+        }
+    }
+
+    if (P1IFG & BIT2) { // encoder interrupt
+        if ((P1IN & BIT3) == 0) {
+            encoder_cnt--;
+        } else {
+            encoder_cnt++;
+        }
+    }
+
+    if (encoder_cnt > 9999) {
+        encoder_cnt = 0;
+    } else if (encoder_cnt < 0) {
+        encoder_cnt = 9999;
+    }
+
+    P1IFG &= ~BIT3; // Clear IFG for BIT3
+    P1IFG &= ~BIT2; // Clear IFG for BIT2
 }
 
 //Timer0
