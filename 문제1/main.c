@@ -167,13 +167,14 @@ void main(void){
                     stopwatch_timer=0;
                 }
 
-                decimal_point = encoder_cnt%4;
+                decimal_point = (encoder_cnt / 100) % 4;
 
                 screen_arr[0] = digits[stopwatch_data%10];
                 screen_arr[1] = digits[stopwatch_data/10%10];
                 screen_arr[2] = digits[stopwatch_data/100%10];
                 screen_arr[3] = digits[stopwatch_data/1000%10];
 
+                screen_arr[decimal_point] |= 0x20; // .
 
                 break;
 
@@ -260,6 +261,7 @@ __interrupt void TIMER0_A0_ISR(void)
             stopwatch_start = 0;
         }
     }
+
 }
 
 // Timer2
