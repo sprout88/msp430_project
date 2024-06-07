@@ -1,6 +1,7 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "2번끝_중_화면그리기만.C": "cpp"
     }
 }
