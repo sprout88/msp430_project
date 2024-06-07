@@ -4,23 +4,12 @@
 #define ADC_DELTA_TEN_TIME 1507
 
 unsigned int phase = 0; // 문제 번호
-unsigned int digits[10] = {
-              BIT0 | BIT1 | BIT3 | BIT4 | BIT6 | BIT7,    // P3.0, 3.1, 3.3, 3.4, 3.6, 3.7이 1이 되면 0을 출력
-              BIT4 | BIT6,                                // 1
-              BIT0 | BIT1 | BIT2 | BIT3 | BIT4,           // 2
-              BIT0 | BIT2 | BIT3 | BIT4 | BIT6,           // 3
-              BIT2 | BIT4 | BIT6 | BIT7,                  // 4
-              BIT0 | BIT2 | BIT3 | BIT6 | BIT7,           // 5
-              BIT0 | BIT1 | BIT2 | BIT3 | BIT6 | BIT7,    // 6
-              BIT3 | BIT4 | BIT6,                         // 7
-              BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT6 | BIT7, // 8
-              BIT0 | BIT2 | BIT3 | BIT4 | BIT6 | BIT7     // 9
-              };
+unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
     0x00, /* 0 : 꺼짐 */
     0x20, // 0 : dot */
 };
-unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0xd4};
+unsigned int screen_arr[4] = {0,};
 unsigned int adc_data = 0;
 int scaled_adc_data = 0;
 
@@ -38,7 +27,7 @@ unsigned int anti_clockwise_pwm = 0;
 
 char keypad_pushed[13] = {0,};
 
-char seg_cnt = 0;
+char seg_select = 0;
 
 unsigned int units = 0; // adc 일의자리
 unsigned int tenths_place_num = 0; // adc 십의자리
@@ -302,33 +291,34 @@ __interrupt void TIMER1_A0_ISR(void) {
 #pragma vector=TIMER2_A0_VECTOR
 __interrupt void TIMER2_A0_ISR(void)
 {
-    seg_cnt++; // 7 Segment Dynamic 구동 타이머
-    if (seg_cnt > 3)
-        seg_cnt = 0; // count 순회
+    seg_select++; // 7 Segment Dynamic 구동 타이머
+    if (seg_select > 3)
+        seg_select = 0; // count 순회
 
-    switch (seg_cnt)
+    P3OUT = 0x00;
+    switch (seg_select)
     {
     case 0:
-        P3OUT = screen_arr[0];
         P4OUT &= ~BIT0;
         P4OUT |= (BIT1|BIT2|BIT3);
+        P3OUT = screen_arr[0];
         break;
 
     case 1:
-        P3OUT = screen_arr[1];
         P4OUT &= ~BIT1;
         P4OUT |= (BIT0|BIT2|BIT3);
+        P3OUT = screen_arr[1];
         break;
 
     case 2:
-        P3OUT = screen_arr[2];
         P4OUT &= ~BIT2;
         P4OUT |= (BIT0|BIT1|BIT3);
+        P3OUT = screen_arr[2];
         break;
     case 3:
-        P3OUT = screen_arr[3];
         P4OUT &= ~BIT3;
         P4OUT |= (BIT0|BIT1|BIT2);
+        P3OUT = screen_arr[3];
         break;
     }
 }
