@@ -4,6 +4,7 @@
 #define ADC_DELTA_TEN_TIME 1507
 
 unsigned int phase = 0; // 문제 번호
+unsigned int i = 0;
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
 unsigned int special_digits[] = {
     0x00, /* 0 : 꺼짐 */
@@ -37,6 +38,10 @@ char ultrasonic_flag = 0;
 unsigned int ultrasonic_data = 0;
 
 unsigned int stop_distance = 0;
+
+char seg_offed = 0;
+
+unsigned int btn_cool = 0;
 
 void main(void){
 
@@ -159,6 +164,12 @@ void main(void){
                 }
                 break;
             case 3: // 2-3 모터 증감속
+                if(seg_offed==0){
+                    seg_offed=1;
+                    for(i=0;i<4;i++){
+                        screen_arr[i]=special_digits[0];
+                    }
+                }
                 if(motor_cool==0){
                     // pwm 값 받기
                 if(keypad_pushed[11]==1){ // * 누름
@@ -269,9 +280,12 @@ void main(void){
 #pragma vector=PORT2_VECTOR
 __interrupt void Port_2(void)
 {
-    if((P2IN & BIT1) == 0)
-    {
-        phase++;
+    if(btn_cool==0){
+        if((P2IN & BIT1) == 0)
+        {
+            phase++;
+        }
+        btn_cool=1000;
     }
     P2IFG &= ~BIT1; // IFG clear
 }
@@ -280,23 +294,25 @@ __interrupt void Port_2(void)
 __interrupt void Port_1(void)
 {
 // Ultrasonic Sensor Interrupt
-    if (P1IFG & BIT4) {
-        if ((P1IES & BIT4) == 0) { // if rising edge
-            ultrasonic_sec = 0;
-            // TACCTL1 |= TACLR;
-            P1IES |= BIT4; // falling edge
-        } else if (P1IES & BIT4) { // if falling edge
-            if (ultrasonic_sec > 3 && ultrasonic_sec < 500) { // 150us ~ 25ms
-                ultrasonic_data = ultrasonic_sec * 50 / 58; // data = ultrasonic_sec * 50 / 58;
-            } else if (ultrasonic_sec >= 760) {
-                ultrasonic_data = 9999;
+    if(phase==4){
+        if (P1IFG & BIT4) {
+            if ((P1IES & BIT4) == 0) { // if rising edge
+                ultrasonic_sec = 0;
+                // TACCTL1 |= TACLR;
+                P1IES |= BIT4; // falling edge
+            }else if (P1IES & BIT4) { // if falling edge
+                if (ultrasonic_sec > 3 && ultrasonic_sec < 500) { // 150us ~ 25ms
+                    ultrasonic_data = ultrasonic_sec * 50 / 58; // data = ultrasonic_sec * 50 / 58;
+                } else if (ultrasonic_sec >= 760) {
+                    ultrasonic_data = 9999;
+                }
+                ultrasonic_sec = 0;
+                P1IES &= ~BIT4; // rising edge
             }
-            ultrasonic_sec = 0;
-            P1IES &= ~BIT4; // rising edge
+            ultrasonic_flag = 0;
         }
-        ultrasonic_flag = 0;
-        P1IFG &= ~BIT4; // IFG is cleared
     }
+    P1IFG &= ~BIT4; // IFG is cleared
 }
 
 //Timer0
@@ -309,14 +325,19 @@ __interrupt void TIMER0_A0_ISR(void)
     if(motor_cool!=0){
         motor_cool--;
     }
+    if(btn_cool!=0){
+        btn_cool--;
+    }
 }
 
 // Timer1 : Ultrasonic Timer
 #pragma vector=TIMER1_A0_VECTOR
 __interrupt void TIMER1_A0_ISR(void) {
-    ultrasonic_sec++;
-    if (ultrasonic_flag == 1 && ultrasonic_sec > 1000) {
-        ultrasonic_flag = 0;
+    if(phase==4){
+        ultrasonic_sec++;
+        if (ultrasonic_flag == 1 && ultrasonic_sec > 1000) {
+            ultrasonic_flag = 0;
+        }
     }
 }
 
