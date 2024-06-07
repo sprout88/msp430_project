@@ -70,11 +70,6 @@ void main(void){
     TA0CCR0 = 1000; // 1ms;
     TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
 
-    /* Timer1 */
-    TA1CCTL0 = CCIE;
-    TA1CCR0 = 50;    // 50us
-    TA1CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1MHz / Up mode to CCR0
-
     /* Timer2 */
     TA2CCTL0 = CCIE;
     TA2CCR0 = 5000; // 5ms;
