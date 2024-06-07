@@ -37,11 +37,14 @@ unsigned long ultrasonic_sec = 0;
 char ultrasonic_flag = 0;
 unsigned int ultrasonic_data = 0;
 
-unsigned int stop_distance = 0;
+unsigned int stop_distance = 10; // 10cm
 
 char seg_offed = 0;
 
 unsigned int btn_cool = 0;
+
+char total_pwm_saved_flag = 0;
+unsigned int total_pwm_stored = 0;
 
 void main(void){
 
@@ -204,7 +207,7 @@ void main(void){
                         motor_cool = 1000;
                     }
                 }
-                                /* 키패드 폴링 */
+                /* 키패드 폴링 */
                 // Columns 1
                 P2OUT &= ~BIT2;
                 P2OUT |= (BIT0 | BIT3);
@@ -260,9 +263,27 @@ void main(void){
                 screen_arr[2] = digits[ultrasonic_data/100%10]; // XOXX
                 screen_arr[3] = digits[ultrasonic_data/1000%10]; // OXXX
 
-                if(ultrasonic_data < stop_distance){
-                    while(1){}
+                if(total_pwm_saved_flag==0){ // 처음 phase4 진입시 속도를 저장
+                        total_pwm_stored = total_pwm;
+                        total_pwm_saved_flag = 1;
                 }
+
+                if(ultrasonic_data < stop_distance){
+                    total_pwm = 0;
+                }else if(ultrasonic_data >= stop_distance){
+                    total_pwm = total_pwm_saved_flag;
+                }
+                // 모터 회전
+                    if(total_pwm>0){
+                        TA2CCR2 = total_pwm;
+                        TA2CCR1 = 0;
+                    }else if(total_pwm<0){
+                        TA2CCR2 = 0;
+                        TA2CCR1 = -total_pwm;
+                    }else if(total_pwm==0){
+                        TA2CCR2 = 0;
+                        TA2CCR1 = 0;
+                    }
                 break;
             case 5:
 
