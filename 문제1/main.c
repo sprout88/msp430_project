@@ -22,7 +22,13 @@ unsigned int adc_data = 0;
 unsigned long seed = 0;
 
 char phase2_lock = 0;
+char segment_on = 0; // 세그먼트를 끄고 켬
 
+char phase1_start = 0;
+char phase2_start = 0;
+
+char stopwatch_lock = 0;
+unsigned int stopwatch = 0; // p1.0 led 점등 이후 p1.1 스위치를 몇초안에 눌렀는지 잼
 
 void main(void){
 
@@ -108,12 +114,18 @@ void main(void){
 
                 break;
             case 1: // 1-1 : 1~2초 랜덤 시간 후에 p1.0 led 1초 점등
+                if(phase1_start==0){
+                    phase2_start = 1;
+                }
                 if(random_time==0){
                     P1OUT |= BIT0; // LED1 ON
                 }
                 break;
             case 2: // 1-2 :
-
+                if(phase2_start==0){
+                    
+                    phase2_start = 1;
+                }
 
                 break;
 
@@ -148,9 +160,11 @@ __interrupt void Port_2(void)
 #pragma vector=TIMER0_A0_VECTOR // 1ms
 __interrupt void TIMER0_A0_ISR(void)
 {
-    if(random_time!=0){
-        random_time--;
-    }
+    if(phase1_start==1){
+        if(random_time!=0){
+            random_time--;
+        }
+    } 
 }
 
 // Timer1 : Ultrasonic Timer
@@ -163,34 +177,37 @@ __interrupt void TIMER1_A0_ISR(void) {
 #pragma vector=TIMER2_A0_VECTOR
 __interrupt void TIMER2_A0_ISR(void)
 {
-    seg_select++; // 7 Segment Dynamic 구동 타이머
-    if (seg_select > 3)
-        seg_select = 0; // count 순회
+    if(segment_on==1){
+        seg_select++; // 7 Segment Dynamic 구동 타이머
+        if (seg_select > 3)
+            seg_select = 0; // count 순회
 
-    P3OUT = 0x00;
-    switch (seg_select)
-    {
-    case 0:
-        P4OUT &= ~BIT0;
-        P4OUT |= (BIT1|BIT2|BIT3);
-        P3OUT = screen_arr[0];
-        break;
+        P3OUT = 0x00;
+        switch (seg_select)
+        {
+        case 0:
+            P4OUT &= ~BIT0;
+            P4OUT |= (BIT1|BIT2|BIT3);
+            P3OUT = screen_arr[0];
+            break;
 
-    case 1:
-        P4OUT &= ~BIT1;
-        P4OUT |= (BIT0|BIT2|BIT3);
-        P3OUT = screen_arr[1];
-        break;
+        case 1:
+            P4OUT &= ~BIT1;
+            P4OUT |= (BIT0|BIT2|BIT3);
+            P3OUT = screen_arr[1];
+            break;
 
-    case 2:
-        P4OUT &= ~BIT2;
-        P4OUT |= (BIT0|BIT1|BIT3);
-        P3OUT = screen_arr[2];
-        break;
-    case 3:
-        P4OUT &= ~BIT3;
-        P4OUT |= (BIT0|BIT1|BIT2);
-        P3OUT = screen_arr[3];
-        break;
+        case 2:
+            P4OUT &= ~BIT2;
+            P4OUT |= (BIT0|BIT1|BIT3);
+            P3OUT = screen_arr[2];
+            break;
+        case 3:
+            P4OUT &= ~BIT3;
+            P4OUT |= (BIT0|BIT1|BIT2);
+            P3OUT = screen_arr[3];
+            break;
+        }
     }
+    
 }
