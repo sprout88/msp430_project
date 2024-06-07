@@ -266,6 +266,9 @@ void main(void){
 
                 break;
             case 4: // 2-4 : 초음파 센서로 모터 멈추기
+
+                seg_offed = 0; // 화면 켬
+
                 // 초음파 거리 측정
                 if(ultrasonic_flag==0){
                     P2OUT |= BIT7;  // Trig on
@@ -303,7 +306,12 @@ void main(void){
                     }
                 break;
             case 5: // 2-5 : 엔코더 장애물 감지
-
+                if(seg_offed==0){ // 화면 끔
+                    seg_offed=1;
+                    for(i=0;i<4;i++){
+                        screen_arr[i]=0;
+                    }
+                }
                 if(encoder_check_cool==0){
                     prev_encoder_cnt = encoder_cnt;
                     encoder_check_cool=500; // 5ms
@@ -314,7 +322,7 @@ void main(void){
                     encoder_delta = prev_encoder_cnt-encoder_cnt;
                 }
 
-                if(encoder_delta<=100){ // 충돌 감지
+                if(encoder_delta<=30){ // 충돌 감지
                     total_pwm = 0;
                 }else{
                     total_pwm = total_pwm_stored;
@@ -332,6 +340,15 @@ void main(void){
                 }
 
                 break;
+            case 6: // 2-6 : 초기 상태 복귀
+                phase = 0;
+                total_pwm_stored = 0;
+                total_pwm = 0;
+                clockwise_pwm = 0;
+                anti_clockwise_pwm = 0;
+                
+                break;
+
         }
     }
 }
