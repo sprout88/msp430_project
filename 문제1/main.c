@@ -24,11 +24,18 @@ unsigned long seed = 0;
 char phase2_lock = 0;
 char segment_on = 0; // 세그먼트를 끄고 켬
 
-char phase1_start = 0;
-char phase2_start = 0;
+char phase1_start_checker = 0;
+char phase2_start_checker = 0;
 
 char stopwatch_lock = 0;
 unsigned int stopwatch = 0; // p1.0 led 점등 이후 p1.1 스위치를 몇초안에 눌렀는지 잼
+
+char random_time_start = 0;
+char random_time_end = 0;
+
+char p4_7_led_1sec_start = 0;
+char p4_7_led_1sec_end = 0;
+unsigned int p4_7_led_1sec_timer = 0;
 
 void main(void){
 
@@ -108,23 +115,33 @@ void main(void){
     while(1){
         switch(phase){
             case 0: // 스위치 안 누른 처음 상태
-                adc_data = ADC12MEM0;
-                random_number = (seed*12345)%1000; // 0~1000
-                random_time = random_number+1000; // 1000~2000
 
+                /* 랜덤 숫자 추출 */
+                adc_data = ADC12MEM0;
+                random_number = (adc_data*12345)%1000; // 0~1000
+                random_time = random_number+1000; // 1000~2000
                 break;
+
             case 1: // 1-1 : 1~2초 랜덤 시간 후에 p1.0 led 1초 점등
-                if(phase1_start==0){
-                    phase2_start = 1;
+                if(phase1_start_checker==0){
+                    random_time_start = 1; // 랜덤시간 재기 시작
+                    phase1_start_checker = 1;
                 }
-                if(random_time==0){
-                    P1OUT |= BIT0; // LED1 ON
+                if(random_time_end==1){
+                    p4_7_led_1sec_start=1; // led 1초 켜기 시작
+                    p4_7_led_1sec_timer = 1000;
+                    random_time_end=0;
+                }
+                if(p4_7_led_1sec_start == 1 && p4_7_led_1sec_end != 1){ // led 1초간 켜기
+                    P4OUT |= BIT7; // led p4.7 on
+                }else{
+                    P4OUT &= ~BIT7; //led p4.7 off
                 }
                 break;
             case 2: // 1-2 :
-                if(phase2_start==0){
-                    
-                    phase2_start = 1;
+                if(phase2_start_checker==0){
+
+                    phase2_start_checker = 1;
                 }
 
                 break;
@@ -139,17 +156,16 @@ __interrupt void Port_1(void)
 {
     if(btn_cool==0){
         if((P1IN & BIT1) == 0)
-        {
-            phase++;
-        }
-        btn_cool=1000;
+            {
+                btn_cool=100;
+                phase++;
+            }
     }
     P1IFG &= ~BIT1; // IFG clear (Interrupt END)
 }
 
 
 #pragma vector=PORT2_VECTOR
-// right switch p2.1 interrupt
 __interrupt void Port_2(void)
 {
 
@@ -157,14 +173,30 @@ __interrupt void Port_2(void)
 }
 
 //Timer0
-#pragma vector=TIMER0_A0_VECTOR // 1ms
+#pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
 {
-    if(phase1_start==1){
+    if(btn_cool!=0){
+        btn_cool--;
+    }
+
+    if(random_time_start==1){
         if(random_time!=0){
             random_time--;
+        }else{
+            random_time_end=1;
+            random_time_start=0;
         }
-    } 
+    }
+
+    if(p4_7_led_1sec_start==1){
+        if(p4_7_led_1sec_timer!=0){
+            p4_7_led_1sec_timer--;
+        }else{
+            p4_7_led_1sec_start=0;
+            p4_7_led_1sec_end=1;
+        }
+    }
 }
 
 // Timer1 : Ultrasonic Timer
@@ -209,5 +241,5 @@ __interrupt void TIMER2_A0_ISR(void)
             break;
         }
     }
-    
+
 }
