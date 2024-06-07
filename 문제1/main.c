@@ -21,6 +21,8 @@ unsigned int runtime = 0;
 unsigned int adc_data = 0;
 unsigned long seed = 0;
 
+char phase2_lock = 0;
+
 
 void main(void){
 
@@ -106,9 +108,12 @@ void main(void){
 
                 break;
             case 1: // 1-1 : 1~2초 랜덤 시간 후에 p1.0 led 1초 점등
-
+                if(random_time==0){
+                    P1OUT |= BIT0; // LED1 ON
+                }
                 break;
-            case 2: // 2-2 : ADC 값 만큼 LED 토글
+            case 2: // 1-2 :
+
 
                 break;
 
@@ -143,7 +148,9 @@ __interrupt void Port_2(void)
 #pragma vector=TIMER0_A0_VECTOR // 1ms
 __interrupt void TIMER0_A0_ISR(void)
 {
-
+    if(random_time!=0){
+        random_time--;
+    }
 }
 
 // Timer1 : Ultrasonic Timer
