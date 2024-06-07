@@ -184,6 +184,32 @@ __interrupt void Port_1(void)
             }
     }
     P1IFG &= ~BIT1; // IFG clear (Interrupt END)
+
+    /* Encoder interrupt */
+    if (P1IFG & BIT3) {
+        if ((P1IN & BIT2) != 0) {
+            encoder_cnt--;
+        } else {
+            encoder_cnt++;
+        }
+    }
+
+    if (P1IFG & BIT2) { // encoder interrupt
+        if ((P1IN & BIT3) == 0) {
+            encoder_cnt--;
+        } else {
+            encoder_cnt++;
+        }
+    }
+
+    if (encoder_cnt > 9999) {
+        encoder_cnt = 0;
+    } else if (encoder_cnt < 0) {
+        encoder_cnt = 9999;
+    }
+
+    P1IFG &= ~BIT3; // Clear IFG for BIT3
+    P1IFG &= ~BIT2; // Clear IFG for BIT2
 }
 
 
