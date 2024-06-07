@@ -308,31 +308,27 @@ __interrupt void TIMER2_A0_ISR(void)
 
     switch (seg_cnt)
     {
-    case 0:
-        P3OUT = 0x00;
-        P4OUT &= ~BIT0;
-        P4OUT |= (BIT1|BIT2|BIT3);
-        P3OUT = screen_arr[0];
+    case 0: // ####### 여기서 오류가 발생함. P3OUT 이 case3의 P4OUT 의해 잠깐동안 (1 pc) 출력되면서 잔상이 생김.
+        P3OUT = screen_arr[0]; // 여기에 BreakPoint1
+        P4OUT &= ~BIT0; // 여기에 BreakPoint2
+        P4OUT |= (BIT1|BIT2|BIT3);  // 여기에 BreakPoint3
         break;
 
     case 1:
-        P3OUT = 0x00;
+        P3OUT = screen_arr[1];
         P4OUT &= ~BIT1;
         P4OUT |= (BIT0|BIT2|BIT3);
-        P3OUT = screen_arr[1];
         break;
 
     case 2:
-        P3OUT = 0x00;
+        P3OUT = screen_arr[2];
         P4OUT &= ~BIT2;
         P4OUT |= (BIT0|BIT1|BIT3);
-        P3OUT = screen_arr[2];
         break;
     case 3:
-        P3OUT = 0x00;
+        P3OUT = screen_arr[3];
         P4OUT &= ~BIT3;
         P4OUT |= (BIT0|BIT1|BIT2);
-        P3OUT = screen_arr[3];
         break;
     }
 }
