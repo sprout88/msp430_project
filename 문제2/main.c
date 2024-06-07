@@ -32,8 +32,11 @@ char seg_select = 0;
 unsigned int units = 0; // adc 일의자리
 unsigned int tenths_place_num = 0; // adc 십의자리
 
-unsigned int ultrasonic_sec = 0;
+unsigned long ultrasonic_sec = 0;
 char ultrasonic_flag = 0;
+unsigned int ultrasonic_data = 0;
+
+unsigned int stop_distance = 0;
 
 void main(void){
 
@@ -104,6 +107,14 @@ void main(void){
     P6REN |= (BIT3 | BIT4 | BIT5 | BIT6);
     P6OUT |= (BIT3 | BIT4 | BIT5 | BIT6); // pull up
 
+    /* 초음파 센서 */
+    P2DIR |= BIT7;
+    P2OUT &= ~BIT7;  // Trig off
+    P1IE |= BIT4;    // Interrupt enabled
+    P1IES &= ~BIT4;  // Rising edge
+    P1IES |= BIT4;   // Falling edge
+    P1IFG &= ~BIT4;  // Clear interrupt flag
+
     // enable interrupt
     __bis_SR_register(GIE);
 
@@ -148,7 +159,6 @@ void main(void){
                 }
                 break;
             case 3: // 2-3 모터 증감속
-
                 if(motor_cool==0){
                     // pwm 값 받기
                 if(keypad_pushed[11]==1){ // * 누름
@@ -183,6 +193,26 @@ void main(void){
                         motor_cool = 1000;
                     }
                 }
+            case 4: // 2-4 : 초음파 센서로 모터 멈추기
+
+                // 초음파 거리 측정
+                if(ultrasonic_flag==0){
+                    P2OUT |= BIT7;  // Trig on
+                    __delay_cycles(10); // 10us
+                    P2OUT &= ~BIT7; // Trig off
+                    ultrasonic_flag = 1;
+                }
+
+                // save to screen_arr
+                screen_arr[0] = digits[ultrasonic_data%10]; // XXXO
+                screen_arr[1] = digits[ultrasonic_data/10%10]; // XXOX
+                screen_arr[2] = digits[ultrasonic_data/100%10]; // XOXX
+                screen_arr[3] = digits[ultrasonic_data/1000%10]; // OXXX
+
+                if(ultrasonic_data < stop_distance){
+                    while(1){}
+                }
+
 
 
                 /* 키패드 폴링 */
@@ -229,7 +259,7 @@ void main(void){
 
 
                 break;
-            case 4: // 2-4 : 초음파 거리 측정, 물체 감지 시 정지
+            case 5: // 2-4 : 초음파 거리 측정, 물체 감지 시 정지
                 break;
         }
     }
@@ -257,9 +287,9 @@ __interrupt void Port_1(void)
             P1IES |= BIT4; // falling edge
         } else if (P1IES & BIT4) { // if falling edge
             if (ultrasonic_sec > 3 && ultrasonic_sec < 500) { // 150us ~ 25ms
-                ultrasonic_sec = ultrasonic_sec * 50 / 58; // data = ultrasonic_sec * 50 / 58;
+                ultrasonic_data = ultrasonic_sec * 50 / 58; // data = ultrasonic_sec * 50 / 58;
             } else if (ultrasonic_sec >= 760) {
-                ultrasonic_sec = 9999;
+                ultrasonic_data = 9999;
             }
             ultrasonic_sec = 0;
             P1IES &= ~BIT4; // rising edge
@@ -284,7 +314,10 @@ __interrupt void TIMER0_A0_ISR(void)
 // Timer1 : Ultrasonic Timer
 #pragma vector=TIMER1_A0_VECTOR
 __interrupt void TIMER1_A0_ISR(void) {
-
+    ultrasonic_sec++;
+    if (ultrasonic_flag == 1 && ultrasonic_sec > 1000) {
+        ultrasonic_flag = 0;
+    }
 }
 
 // Timer2
