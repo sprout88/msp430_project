@@ -161,16 +161,18 @@ void main(void){
                 }else if(stopwatch_start == 1 && stopwatch_end == 0 ){ // 중간
 
                 }else if(stopwatch_start == 1 && stopwatch_end == 1 ){ //끝
-                    screen_arr[0] = digits[stopwatch_data%10];
-                    screen_arr[1] = digits[stopwatch_data/10%10];
-                    screen_arr[2] = digits[stopwatch_data/100%10];
-                    screen_arr[3] = digits[stopwatch_data/1000%10];
+
                     segment_on = 1;
                     stopwatch_data = stopwatch_timer;
                     stopwatch_timer=0;
                 }
 
                 decimal_point = encoder_cnt%4;
+
+                screen_arr[0] = digits[stopwatch_data%10];
+                screen_arr[1] = digits[stopwatch_data/10%10];
+                screen_arr[2] = digits[stopwatch_data/100%10];
+                screen_arr[3] = digits[stopwatch_data/1000%10];
 
 
                 break;
