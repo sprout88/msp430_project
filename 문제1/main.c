@@ -253,12 +253,6 @@ __interrupt void TIMER0_A0_ISR(void)
     }
 }
 
-// Timer1 : Ultrasonic Timer
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void TIMER1_A0_ISR(void) {
-
-}
-
 // Timer2
 #pragma vector=TIMER2_A0_VECTOR
 __interrupt void TIMER2_A0_ISR(void)
