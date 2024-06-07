@@ -47,6 +47,9 @@ char total_pwm_saved_flag = 0;
 unsigned int total_pwm_stored = 0;
 
 int encoder_cnt = 0;
+int prev_encoder_cnt = 0;
+unsigned int encoder_check_cool = 0;
+int encoder_delta = 0;
 
 void main(void){
 
@@ -300,22 +303,33 @@ void main(void){
                     }
                 break;
             case 5: // 2-5 : 엔코더 장애물 감지
-                if(encoder_cnt<200){
+
+                if(encoder_check_cool==0){
+                    prev_encoder_cnt = encoder_cnt;
+                    encoder_check_cool=500; // 5ms
+                }
+                if(encoder_cnt>prev_encoder_cnt){ // 항상 양수
+                    encoder_delta = encoder_cnt-prev_encoder_cnt;
+                }else{
+                    encoder_delta = prev_encoder_cnt-encoder_cnt;
+                }
+
+                if(encoder_delta<=100){ // 충돌 감지
                     total_pwm = 0;
                 }else{
                     total_pwm = total_pwm_stored;
                 }
-                // 모터 회전
-                    if(total_pwm>0){
-                        TA2CCR2 = total_pwm;
-                        TA2CCR1 = 0;
-                    }else if(total_pwm<0){
-                        TA2CCR2 = 0;
-                        TA2CCR1 = -total_pwm;
-                    }else if(total_pwm==0){
-                        TA2CCR2 = 0;
-                        TA2CCR1 = 0;
-                    }
+                //모터 회전
+                if(total_pwm>0){
+                    TA2CCR2 = total_pwm;
+                    TA2CCR1 = 0;
+                }else if(total_pwm<0){
+                    TA2CCR2 = 0;
+                    TA2CCR1 = -total_pwm;
+                }else if(total_pwm==0){
+                    TA2CCR2 = 0;
+                    TA2CCR1 = 0;
+                }
 
                 break;
         }
@@ -332,10 +346,6 @@ __interrupt void Port_2(void)
             phase++;
         }
         btn_cool=1000;
-
-        if(phase==5){
-            total_pwm = total_pwm_stored;
-        }
     }
     P2IFG &= ~BIT1; // IFG clear
 }
@@ -403,6 +413,9 @@ __interrupt void TIMER0_A0_ISR(void)
     }
     if(btn_cool!=0){
         btn_cool--;
+    }
+    if(encoder_check_cool!=0){
+        encoder_check_cool--;
     }
 }
 
