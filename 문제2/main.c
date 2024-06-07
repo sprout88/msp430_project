@@ -165,7 +165,7 @@ void main(void){
                     }
                     led_toggle_cool = (100*scaled_adc_data);
                 }
-                break;
+                break;s
             case 3: // 2-3 모터 증감속
                 if(seg_offed==0){
                     seg_offed=1;
@@ -271,7 +271,7 @@ void main(void){
                 if(ultrasonic_data < stop_distance){
                     total_pwm = 0;
                 }else if(ultrasonic_data >= stop_distance){
-                    total_pwm = total_pwm_saved_flag;
+                    total_pwm = total_pwm_stored;
                 }
                 // 모터 회전
                     if(total_pwm>0){
