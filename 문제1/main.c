@@ -30,6 +30,7 @@ char phase2_start_checker = 0;
 char stopwatch_start = 0;
 char stopwatch_end = 0;
 unsigned int stopwatch_timer = 0; // p1.0 led 점등 이후 p1.1 스위치를 몇초안에 눌렀는지 잼
+unsigned int stopwatch_data = 0;
 
 char random_time_start = 0;
 char random_time_end = 0;
@@ -39,6 +40,8 @@ char p4_7_led_1sec_end = 0;
 unsigned int p4_7_led_1sec_timer = 0;
 
 int encoder_cnt = 0;
+
+unsigned int decimal_point = 0;
 
 
 void main(void){
@@ -115,6 +118,11 @@ void main(void){
         switch(phase){
             case 0: // 스위치 안 누른 처음 상태
                 segment_on = 0; // 세그먼트 끄기
+                phase1_start_checker = 0;
+                phase2_start_checker = 0;
+                stopwatch_start = 0;
+                stopwatch_end = 0;
+                stopwatch_timer = 0;
                 /* 랜덤 숫자 추출 */
                 adc_data = ADC12MEM0;
                 random_number = (adc_data*12345)%1000; // 0~1000
@@ -153,15 +161,16 @@ void main(void){
                 }else if(stopwatch_start == 1 && stopwatch_end == 0 ){ // 중간
 
                 }else if(stopwatch_start == 1 && stopwatch_end == 1 ){ //끝
-                    screen_arr[0] = digits[stopwatch_timer%10];
-                    screen_arr[1] = digits[stopwatch_timer/10%10];
-                    screen_arr[2] = digits[stopwatch_timer/100%10];
-                    screen_arr[3] = digits[stopwatch_timer/1000%10];
+                    screen_arr[0] = digits[stopwatch_data%10];
+                    screen_arr[1] = digits[stopwatch_data/10%10];
+                    screen_arr[2] = digits[stopwatch_data/100%10];
+                    screen_arr[3] = digits[stopwatch_data/1000%10];
                     segment_on = 1;
-                    stopwatch_timer = 0;
-                    stopwatch_start = 0;
-                    stopwatch_end = 1;
+                    stopwatch_data = stopwatch_timer;
+                    stopwatch_timer=0;
                 }
+
+                decimal_point = encoder_cnt%4;
 
 
                 break;
