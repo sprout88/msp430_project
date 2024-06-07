@@ -126,7 +126,7 @@ void main(void){
     while(1){
         switch(phase){
             case 0: // 스위치 안 누른 처음 상태
-                P4OUT |= 0x0f; // xxxx
+
                 break;
             case 1: // 2-1 : ADC 값을 0~2 로 매핑 후 세그먼트 출력
                 adc_data = ADC12MEM0;
@@ -167,7 +167,7 @@ void main(void){
                 if(seg_offed==0){
                     seg_offed=1;
                     for(i=0;i<4;i++){
-                        screen_arr[i]=special_digits[0];
+                        screen_arr[i]=0;
                     }
                 }
                 if(motor_cool==0){
@@ -204,29 +204,7 @@ void main(void){
                         motor_cool = 1000;
                     }
                 }
-            case 4: // 2-4 : 초음파 센서로 모터 멈추기
-
-                // 초음파 거리 측정
-                if(ultrasonic_flag==0){
-                    P2OUT |= BIT7;  // Trig on
-                    __delay_cycles(10); // 10us
-                    P2OUT &= ~BIT7; // Trig off
-                    ultrasonic_flag = 1;
-                }
-
-                // save to screen_arr
-                screen_arr[0] = digits[ultrasonic_data%10]; // XXXO
-                screen_arr[1] = digits[ultrasonic_data/10%10]; // XXOX
-                screen_arr[2] = digits[ultrasonic_data/100%10]; // XOXX
-                screen_arr[3] = digits[ultrasonic_data/1000%10]; // OXXX
-
-                if(ultrasonic_data < stop_distance){
-                    while(1){}
-                }
-
-
-
-                /* 키패드 폴링 */
+                                /* 키패드 폴링 */
                 // Columns 1
                 P2OUT &= ~BIT2;
                 P2OUT |= (BIT0 | BIT3);
@@ -266,11 +244,28 @@ void main(void){
                     TA2CCR1 = 0;
                 }
 
-                // 키패드 폴링
-
-
                 break;
-            case 5: // 2-4 : 초음파 거리 측정, 물체 감지 시 정지
+            case 4: // 2-4 : 초음파 센서로 모터 멈추기
+                // 초음파 거리 측정
+                if(ultrasonic_flag==0){
+                    P2OUT |= BIT7;  // Trig on
+                    __delay_cycles(10); // 10us
+                    P2OUT &= ~BIT7; // Trig off
+                    ultrasonic_flag = 1;
+                }
+
+                // save to screen_arr
+                screen_arr[0] = digits[ultrasonic_data%10]; // XXXO
+                screen_arr[1] = digits[ultrasonic_data/10%10]; // XXOX
+                screen_arr[2] = digits[ultrasonic_data/100%10]; // XOXX
+                screen_arr[3] = digits[ultrasonic_data/1000%10]; // OXXX
+
+                if(ultrasonic_data < stop_distance){
+                    while(1){}
+                }
+                break;
+            case 5:
+
                 break;
         }
     }
