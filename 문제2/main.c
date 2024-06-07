@@ -3,8 +3,12 @@
 #define ADC_MAX 4095
 #define ADC_DELTA_TEN_TIME 1507
 
-unsigned int phase = 3; // 문제 번호
+unsigned int phase = 0; // 문제 번호
 unsigned int digits[10] = { 0xdb, 0x50, 0x1f, 0x5d, 0xd4, 0xcd, 0xcf, 0xd8, 0xdf, 0xdd}; // 7 segment digits
+unsigned int special_digits[] = {
+    0x00, /* 0 : 꺼짐 */
+    0x20, // 0 : dot */
+};
 unsigned int screen_arr[4] = {0xdb,0x50,0x1f,0xd4};
 unsigned int adc_data = 0;
 int scaled_adc_data = 0;
@@ -23,19 +27,27 @@ unsigned int anti_clockwise_pwm = 0;
 
 char keypad_pushed[13] = {0,};
 
+char seg_cnt = 0;
+
+unsigned int units = 0; // adc 일의자리
+unsigned int tenths_place_num = 0; // adc 십의자리
+
+unsigned int ultrasonic_sec = 0;
+char ultrasonic_flag = 0;
+
 void main(void){
 
     // inits
 
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 
-    /* Left Switch */
-    P1OUT |= BIT1; // DIR
-    P1REN |= BIT1; // pull up resister
+    /* p2.1 right switch */
+    P2OUT |= BIT1; // DIR
+    P2REN |= BIT1; // pull up resister
 
-    P1IE |= BIT1; // Interrupt Enable
-    P1IES |= BIT1; // Interrupt edge select : Falling Edge
-    P1IFG &= ~BIT1; // interrupt flag
+    P2IE |= BIT1; // Interrupt Enable
+    P2IES |= BIT1; // Interrupt edge select : Falling Edge
+    P2IFG &= ~BIT1; // interrupt flag
 
     /* P1.1 right LED */
     P1DIR |= BIT0;
@@ -55,6 +67,16 @@ void main(void){
     TA0CCTL0 = CCIE;
     TA0CCR0 = 1000; // 1ms;
     TA0CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
+
+    /* Timer1 */
+    TA1CCTL0 = CCIE;
+    TA1CCR0 = 50;    // 50us
+    TA1CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1MHz / Up mode to CCR0
+
+    /* Timer2 */
+    TA2CCTL0 = CCIE;
+    TA2CCR0 = 5000; // 5ms;
+    TA2CTL = TASSEL_2 + MC_1 + TACLR; // SMCLK : 1Mhz / Up mode to CCRO
 
     /* ADC 가변 저항 */
     P6SEL |= BIT0; // ADC DIR
@@ -95,10 +117,20 @@ void main(void){
                 dividend = 10 * (adc_data - ADC_MIN);
 
                 if (adc_data < ADC_MIN || adc_data > ADC_MAX) { // out of error 처리
-                    scaled_adc_data =  1111; // out of range Error
+                    scaled_adc_data =  9999; // out of range Error
                 }else{
                     scaled_adc_data = dividend / ADC_DELTA_TEN_TIME; // adc 데이터 두자리로 측정완료
                 }
+
+                // 화면에 그리기
+                units = scaled_adc_data/10%10; // xxN.?xx
+                tenths_place_num = scaled_adc_data%10; // xxx.Nxx
+
+                // edit global screen arr
+                screen_arr[3] = special_digits[0]; // far left : off
+                screen_arr[2] = special_digits[0]; // mid left : off
+                screen_arr[1] = digits[units]+special_digits[1]; // mid right : units.
+                screen_arr[0] = digits[tenths_place_num]; // far right
 
                 break;
             case 2: // 2-2 : ADC 값 만큼 LED 토글
@@ -203,7 +235,41 @@ void main(void){
     }
 }
 
+// right switch interrupt
+#pragma vector=PORT2_VECTOR
+__interrupt void Port_2(void)
+{
+    if((P2IN & BIT1) == 0)
+    {
+        phase++;
+    }
+    P2IFG &= ~BIT1; // IFG clear
+}
 
+#pragma vector=PORT1_VECTOR
+__interrupt void Port_1(void)
+{
+// Ultrasonic Sensor Interrupt
+    if (P1IFG & BIT4) {
+        if ((P1IES & BIT4) == 0) { // if rising edge
+            ultrasonic_sec = 0;
+            // TACCTL1 |= TACLR;
+            P1IES |= BIT4; // falling edge
+        } else if (P1IES & BIT4) { // if falling edge
+            if (ultrasonic_sec > 3 && ultrasonic_sec < 500) { // 150us ~ 25ms
+                ultrasonic_sec = ultrasonic_sec * 50 / 58; // data = ultrasonic_sec * 50 / 58;
+            } else if (ultrasonic_sec >= 760) {
+                ultrasonic_sec = 9999;
+            }
+            ultrasonic_sec = 0;
+            P1IES &= ~BIT4; // rising edge
+        }
+        ultrasonic_flag = 0;
+        P1IFG &= ~BIT4; // IFG is cleared
+    }
+}
+
+//Timer0
 #pragma vector=TIMER0_A0_VECTOR // 1ms
 __interrupt void TIMER0_A0_ISR(void)
 {
@@ -215,3 +281,39 @@ __interrupt void TIMER0_A0_ISR(void)
     }
 }
 
+// Timer1 : Ultrasonic Timer
+#pragma vector=TIMER1_A0_VECTOR
+__interrupt void TIMER1_A0_ISR(void) {
+
+}
+
+// Timer2
+#pragma vector=TIMER2_A0_VECTOR
+__interrupt void TIMER2_A0_ISR(void)
+{
+    seg_cnt++; // 7 Segment Dynamic 구동 타이머
+    if (seg_cnt > 3)
+        seg_cnt = 0; // count 순회
+
+    switch (seg_cnt)
+    {
+    case 0:
+        P3OUT = screen_arr[0];
+        P4OUT &= ~BIT0;
+        P4OUT |= (BIT1|BIT2|BIT3);
+
+    case 1:
+        P3OUT = screen_arr[1];
+        P4OUT &= ~BIT1;
+        P4OUT |= (BIT0|BIT2|BIT3);
+
+    case 2:
+        P3OUT = screen_arr[2];
+        P4OUT &= ~BIT2;
+        P4OUT |= (BIT0|BIT1|BIT3);
+    case 3:
+        P3OUT = screen_arr[3];
+        P4OUT &= ~BIT3;
+        P4OUT |= (BIT0|BIT1|BIT2);
+    }
+}
