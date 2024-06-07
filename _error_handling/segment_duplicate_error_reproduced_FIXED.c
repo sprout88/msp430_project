@@ -306,30 +306,27 @@ __interrupt void TIMER2_A0_ISR(void)
     if (seg_cnt > 3)
         seg_cnt = 0; // count 순회
 
+    P3OUT = 0x00;
     switch (seg_cnt)
     {
     case 0:
-        P3OUT = 0x00;
         P4OUT &= ~BIT0;
         P4OUT |= (BIT1|BIT2|BIT3);
         P3OUT = screen_arr[0];
         break;
 
     case 1:
-        P3OUT = 0x00;
         P4OUT &= ~BIT1;
         P4OUT |= (BIT0|BIT2|BIT3);
         P3OUT = screen_arr[1];
         break;
 
     case 2:
-        P3OUT = 0x00;
         P4OUT &= ~BIT2;
         P4OUT |= (BIT0|BIT1|BIT3);
         P3OUT = screen_arr[2];
         break;
     case 3:
-        P3OUT = 0x00;
         P4OUT &= ~BIT3;
         P4OUT |= (BIT0|BIT1|BIT2);
         P3OUT = screen_arr[3];
