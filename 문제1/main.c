@@ -116,7 +116,7 @@ void main(void){
     while(1){
         switch(phase){
             case 0: // 스위치 안 누른 처음 상태
-
+                segment_on = 0; // 세그먼트 끄기
                 /* 랜덤 숫자 추출 */
                 adc_data = ADC12MEM0;
                 random_number = (adc_data*12345)%1000; // 0~1000
@@ -150,6 +150,21 @@ void main(void){
                     stopwatch_end = 1;
                     phase2_start_checker = 1;
                 }
+                if(stopwatch_start == 0 && stopwatch_end == 0){ // 시작 전
+
+                }else if(stopwatch_start == 1 && stopwatch_end == 0 ){ // 중간
+
+                }else if(stopwatch_start == 1 && stopwatch_end == 1 ){ //끝
+                    screen_arr[0] = digits[stopwatch_timer%10];
+                    screen_arr[1] = digits[stopwatch_timer/10%10];
+                    screen_arr[2] = digits[stopwatch_timer/100%10];
+                    screen_arr[3] = digits[stopwatch_timer/1000%10];
+                    segment_on = 1;
+                    stopwatch_timer = 0;
+                    stopwatch_start = 0;
+                    stopwatch_end = 1;
+                }
+
 
                 break;
 
